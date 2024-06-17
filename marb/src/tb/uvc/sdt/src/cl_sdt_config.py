@@ -1,12 +1,20 @@
 """SDT-UVC Configuration object"""
 
+from enum import IntEnum
 from pyuvm import uvm_object, uvm_active_passive_enum
 from .sdt_common import SequenceItemOverride
+
+
+class cl_sdt_type_enum(IntEnum):
+    """ Type of driver: PRODUCER or CONSUMER """
+    PRODUCER = 0
+    CONSUMER = 1
+
 
 class cl_sdt_config(uvm_object):
     """Configuration object for the SDT agent (and its sub-components)"""
 
-    def __init__(self, name = 'sdt_config'):
+    def __init__(self, name='sdt_config'):
         super().__init__(name)
 
         #############################
