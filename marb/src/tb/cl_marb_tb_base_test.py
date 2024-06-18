@@ -21,14 +21,20 @@ from uvc.sdt.src.sdt_common import SequenceItemOverride
 
 from reg_model.seq_lib.cl_reg_setup_seq import cl_reg_setup_seq
 
+
 @pyuvm.test()
 class cl_marb_tb_base_test(uvm_test):
-    def __init__(self, name = "cl_marb_tb_base_test", parent = None):
+    def __init__(self, name="cl_marb_tb_base_test", parent=None):
         super().__init__(name, parent)
 
         # Access the DUT through the cocotb.top handler
         self.dut = cocotb.top
 
+        # SDT interface
+        self.sdt_if_c0 = None
+        self.sdt_if_c1 = None
+        self.sdt_if_c2 = None
+        self.sdt_if_m = None
 
         # APB configuration interface
         self.apb_if = None
@@ -51,45 +57,69 @@ class cl_marb_tb_base_test(uvm_test):
         # Create configuration object
         self.cfg = cl_marb_tb_config("cfg")
 
-        # SDT agent Producer configuration
-        self.cfg.sdt_cfg_prod.driver                  = DriverType.PRODUCER
-        self.cfg.sdt_cfg_prod.create_default_coverage = False
-        self.cfg.sdt_cfg_prod.seq_item_override       = SequenceItemOverride.USER_DEFINED
-        # SDT agent Consumer configuration
-        self.cfg.sdt_cfg_cons.driver                  = DriverType.CONSUMER
-        self.cfg.sdt_cfg_cons.create_default_coverage = False
-        self.cfg.sdt_cfg_cons.seq_item_override       = SequenceItemOverride.USER_DEFINED
+        # SDT agent c0 configuration
+        self.cfg.sdt_cfg_c0.driver = DriverType.PRODUCER
+        self.cfg.sdt_cfg_c0.create_default_coverage = False
+        self.cfg.sdt_cfg_c0.seq_item_override = SequenceItemOverride.USER_DEFINED
+        self.cfg.sdt_cfg_c0.addr_width = self.dut.ADDR_WIDTH.value
+        self.cfg.sdt_cfg_c0.data_width = self.dut.DATA_WIDTH.value
 
+        # SDT agent c1 configuration
+        self.cfg.sdt_cfg_c1.driver = DriverType.PRODUCER
+        self.cfg.sdt_cfg_c1.create_default_coverage = False
+        self.cfg.sdt_cfg_c1.seq_item_override = SequenceItemOverride.USER_DEFINED
+        self.cfg.sdt_cfg_c1.addr_width = self.dut.ADDR_WIDTH.value
+        self.cfg.sdt_cfg_c1.data_width = self.dut.DATA_WIDTH.value
+
+        # SDT agent c2 configuration
+        self.cfg.sdt_cfg_c2.driver = DriverType.PRODUCER
+        self.cfg.sdt_cfg_c2.create_default_coverage = False
+        self.cfg.sdt_cfg_c2.seq_item_override = SequenceItemOverride.USER_DEFINED
+        self.cfg.sdt_cfg_c2.addr_width = self.dut.ADDR_WIDTH.value
+        self.cfg.sdt_cfg_c2.data_width = self.dut.DATA_WIDTH.value
+
+        # SDT agent m configuration
+        self.cfg.sdt_cfg_m.driver = DriverType.CONSUMER
+        self.cfg.sdt_cfg_m.create_default_coverage = False
+        self.cfg.sdt_cfg_m.seq_item_override = SequenceItemOverride.USER_DEFINED
+        self.cfg.sdt_cfg_m.addr_width = self.dut.ADDR_WIDTH.value
+        self.cfg.sdt_cfg_m.data_width = self.dut.DATA_WIDTH.value
 
         # APB agent configuration
-        self.cfg.apb_cfg.driver                      = DriverType.PRODUCER
-        self.cfg.apb_cfg.create_default_coverage     = False
-        self.cfg.apb_cfg.seq_item_override           = SequenceItemOverride.USER_DEFINED
+        self.cfg.apb_cfg.driver = DriverType.PRODUCER
+        self.cfg.apb_cfg.create_default_coverage = False
+        self.cfg.apb_cfg.seq_item_override = SequenceItemOverride.USER_DEFINED
 
-        #SDT interface 00
-        self.sdt_if_prod_c0 = cl_sdt_interface(self.dut.clk, self.dut.rst)
-        self.sdt_if_cons_c0 = cl_sdt_interface(self.dut.clk, self.dut.rst)
-        #SDT interface 01
-        self.sdt_if_prod_c1 = cl_sdt_interface(self.dut.clk, self.dut.rst)
-        self.sdt_if_cons_c1 = cl_sdt_interface(self.dut.clk, self.dut.rst)
-        #SDT interface 02
-        self.sdt_if_prod_c2 = cl_sdt_interface(self.dut.clk, self.dut.rst)
-        self.sdt_if_cons_c2 = cl_sdt_interface(self.dut.clk, self.dut.rst)
-        #SDT interface memory
-        self.sdt_if_prod_m = cl_sdt_interface(self.dut.clk, self.dut.rst)
-        self.sdt_if_cons_m = cl_sdt_interface(self.dut.clk, self.dut.rst)
+        # SDT interface c0
+        self.sdt_if_c0 = cl_sdt_interface(self.dut.clk, self.dut.rst)
+        self.sdt_if_c0._set_width_values(
+            ADDR_WIDTH=self.cfg.sdt_cfg_c0.addr_width, DATA_WIDTH=self.cfg.sdt_cfg_c0.data_width)
+        self.cfg.sdt_cfg_c0.vif = self.sdt_if_c0
 
+        self.sdt_if_c1 = cl_sdt_interface(self.dut.clk, self.dut.rst)
+        self.sdt_if_c1._set_width_values(
+            self.cfg.sdt_cfg_c1.addr_width, self.cfg.sdt_cfg_c1.data_width)
+        self.cfg.sdt_cfg_c1.vif = self.sdt_if_c1
 
-        #APB interface
+        self.sdt_if_c2 = cl_sdt_interface(self.dut.clk, self.dut.rst)
+        self.sdt_if_c2._set_width_values(
+            self.cfg.sdt_cfg_c2.addr_width, self.cfg.sdt_cfg_c2.data_width)
+        self.cfg.sdt_cfg_c2.vif = self.sdt_if_c2
+
+        self.sdt_if_m = cl_sdt_interface(self.dut.clk, self.dut.rst)
+        self.sdt_if_m._set_width_values(
+            self.cfg.sdt_cfg_m.addr_width, self.cfg.sdt_cfg_m.data_width)
+        self.cfg.sdt_cfg_m.vif = self.sdt_if_m
+
+        # APB interface
         self.apb_if = cl_apb_interface(self.dut.clk, self.dut.rst)
 
         # Set interfaces in cfg
-        self.cfg.apb_cfg.vif           = self.apb_if
+        self.cfg.apb_cfg.vif = self.apb_if
 
         # Instantiate environment
         ConfigDB().set(self, "marb_tb_env", "cfg", self.cfg)
         self.marb_tb_env = cl_marb_tb_env("marb_tb_env", self)
-
 
         self.logger.info("End build_phase() -> MARB base test")
 
@@ -97,32 +127,48 @@ class cl_marb_tb_base_test(uvm_test):
         self.logger.info("Start connect_phase() -> MARB base test")
         super().connect_phase()
 
-        for interface in [
-            self.sdt_if_prod_c0, self.sdt_if_cons_c0, 
-            self.sdt_if_prod_c1, self.sdt_if_cons_c1, 
-            self.sdt_if_prod_c2, self.sdt_if_cons_c2,
-            self.sdt_if_prod_m, self.sdt_if_cons_m]: 
-            
-            interface.connect(
-                rd         = self.dut.rd,
-                wr         = self.dut.wr,
-                addr       = self.dut.addr,
-                wr_data    = self.dut.wr_data,
-                rd_data    = self.dut.rd_data,
-                ack        = self.dut.ack)
+        self.sdt_if_c0.connect(
+            rd_signal=self.dut.c0_rd,
+            wr_signal=self.dut.c0_wr,
+            addr_signal=self.dut.c0_addr,
+            wr_data_signal=self.dut.c0_wr_data,
+            rd_data_signal=self.dut.c0_rd_data,
+            ack_signal=self.dut.c0_ack)
 
+        self.sdt_if_c1.connect(
+            rd_signal=self.dut.c1_rd,
+            wr_signal=self.dut.c1_wr,
+            addr_signal=self.dut.c1_addr,
+            wr_data_signal=self.dut.c1_wr_data,
+            rd_data_signal=self.dut.c1_rd_data,
+            ack_signal=self.dut.c1_ack)
 
+        self.sdt_if_c2.connect(
+            rd_signal=self.dut.c2_rd,
+            wr_signal=self.dut.c2_wr,
+            addr_signal=self.dut.c2_addr,
+            wr_data_signal=self.dut.c2_wr_data,
+            rd_data_signal=self.dut.c2_rd_data,
+            ack_signal=self.dut.c2_ack)
+
+        self.sdt_if_m.connect(
+            rd_signal=self.dut.m_rd,
+            wr_signal=self.dut.m_wr,
+            addr_signal=self.dut.m_addr,
+            wr_data_signal=self.dut.m_wr_data,
+            rd_data_signal=self.dut.m_rd_data,
+            ack_signal=self.dut.m_ack)
 
         self.apb_if.connect(
-            wr_signal      = self.dut.conf_wr,
-            sel_signal      = self.dut.conf_sel,
-            enable_signal   = self.dut.conf_enable,
-            addr_signal     = self.dut.conf_addr,
-            wdata_signal    = self.dut.conf_wdata,
-            strb_signal     = self.dut.conf_strb,
-            rdata_signal    = self.dut.conf_rdata,
-            ready_signal    = self.dut.conf_ready,
-            slverr_signal   = self.dut.conf_slverr)
+            wr_signal=self.dut.conf_wr,
+            sel_signal=self.dut.conf_sel,
+            enable_signal=self.dut.conf_enable,
+            addr_signal=self.dut.conf_addr,
+            wdata_signal=self.dut.conf_wdata,
+            strb_signal=self.dut.conf_strb,
+            rdata_signal=self.dut.conf_rdata,
+            ready_signal=self.dut.conf_ready,
+            slverr_signal=self.dut.conf_slverr)
 
         self.logger.info("End connect_phase() -> MARB base test")
 
@@ -135,7 +181,6 @@ class cl_marb_tb_base_test(uvm_test):
         # Instantiate register sequences for enabling and configuring the Memory Arbiter
 
         self.logger.info("End run_phase() -> MARB base test")
-
 
     async def trigger_reset(self):
         """Activation and deactivation of reset """
@@ -171,8 +216,10 @@ class cl_marb_tb_base_test(uvm_test):
             test_number = 0
 
         # Writing coverage report in txt-format
-        f = open(f'sim_build/{self.get_type_name()}_{test_number}_cov.txt', "w")
-        f.write(f"Coverage report for {self.get_type_name()} #{test_number} \n")
+        f = open(
+            f'sim_build/{self.get_type_name()}_{test_number}_cov.txt', "w")
+        f.write(
+            f"Coverage report for {self.get_type_name()} #{test_number} \n")
         f.write("------------------------------------------------\n \n")
         vsc.report_coverage(fp=f, details=True)
         f.close()

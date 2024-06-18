@@ -4,7 +4,7 @@ from cocotb.triggers import FallingEdge, RisingEdge, ReadOnly
 from .sdt_common import DriverType, AccessType
 
 
-class cl_std_driver(uvm_driver):
+class cl_sdt_driver(uvm_driver):
     def __init__(self, name, parent):
         super().__init__(name, parent)
 
@@ -71,14 +71,14 @@ class cl_std_driver(uvm_driver):
             await RisingEdge(self.vif.ack)
             await ReadOnly()
 
-            if self.vid.rd.value == 1:
-                self.rsp.data = self.vid.rd_data
-                self.rsp.addr = self.vid.addr
+            if self.vif.rd.value == 1:
+                self.rsp.data = self.vif.rd_data
+                self.rsp.addr = self.vif.addr
                 self.rsp.access = AccessType.RD
 
-            elif self.vid.wr.value == 1:
-                self.rsp.data = self.vid.wr_data
-                self.rsp.addr = self.vid.addr
+            elif self.vif.wr.value == 1:
+                self.rsp.data = self.vif.wr_data
+                self.rsp.addr = self.vif.addr
                 self.rsp.access = AccessType.WR
             else:
                 assert False, "Invalid consumer SDT transaction"

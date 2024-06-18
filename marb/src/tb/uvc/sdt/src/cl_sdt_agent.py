@@ -13,6 +13,8 @@ from .cl_sdt_coverage import cl_sdt_coverage
 from .sdt_common import *
 from .cl_sdt_seq_item import cl_sdt_seq_item
 
+from .cl_sdt_driver import cl_sdt_driver
+
 
 class cl_sdt_agent(uvm_agent):
     """ UVM agent for SDT """
@@ -21,7 +23,7 @@ class cl_sdt_agent(uvm_agent):
         super().__init__(name, parent)
 
         # Analysis port connected to monitor
-        self.ap         = None
+        self.ap = None
         self.request_ap = None
 
         # Handle to configuration object
@@ -34,6 +36,7 @@ class cl_sdt_agent(uvm_agent):
         self.monitor = None
 
         # Signal driver
+        self.driver = None
 
         # Coverage transactor
         self.coverage = None
@@ -49,23 +52,27 @@ class cl_sdt_agent(uvm_agent):
         self.cfg = ConfigDB().get(self, "", "cfg")
 
         # Create monitor and pass handle to cfg
-        ConfigDB().set(self,"monitor","cfg",self.cfg)
+        ConfigDB().set(self, "monitor", "cfg", self.cfg)
         self.monitor = cl_sdt_monitor.create("monitor", self)
 
         if self.cfg.is_active == uvm_active_passive_enum.UVM_ACTIVE:
             # Create driver and pass handle to cfg if active
+            self.driver = cl_sdt_driver.create(
+                f"{self.get_name()}_driver", self)
+            self.driver.cdb_set("cfg", self.cfg, "")
 
             # Create sequencer and pass handle to cfg if active
             ConfigDB().set(self, "sequencer", "cfg", self.cfg)
             self.sequencer = cl_sdt_sequencer.create("sequencer", self)
 
         # Create coverage and pass handle to cfg if active
-        ConfigDB().set(self,"coverage", "cfg", self.cfg)
+        ConfigDB().set(self, "coverage", "cfg", self.cfg)
         self.coverage = cl_sdt_coverage.create("coverage", self)
 
         # Update the sequence item width
         if self.cfg.seq_item_override == SequenceItemOverride.DEFAULT:
-            uvm_factory().set_type_override_by_type(cl_sdt_seq_item, sdt_change_width(self.cfg.ADDR_WIDTH, self.cfg.DATA_WIDTH))
+            uvm_factory().set_type_override_by_type(cl_sdt_seq_item,
+                                                    sdt_change_width(self.cfg.ADDR_WIDTH, self.cfg.DATA_WIDTH))
 
         self.logger.info("End build_phase() -> SDT agent")
 
@@ -74,6 +81,8 @@ class cl_sdt_agent(uvm_agent):
         super().connect_phase()
 
         # Connect driver and sequencer
+        if self.get_is_active() == uvm_active_passive_enum.UVM_ACTIVE:
+            self.driver.seq_item_port.connect(self.sequencer.seq_item_export)
 
         # Connect monitor analysis port
         self.monitor.ap.connect(self.ap)
