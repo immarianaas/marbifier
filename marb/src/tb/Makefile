@@ -54,7 +54,9 @@ COMPILE_ARGS += -P$(TOPLEVEL).ADDR_WIDTH=$(ADDR_WIDTH)
 COMPILE_ARGS += -P$(TOPLEVEL).DATA_WIDTH=$(DATA_WIDTH)
 
 # MODULE is the basename of the Python test file
-MODULE   := tests.cl_marb_basic_test
+# run all the tests (files must end with "test.py")
+TB_TESTS_FILENAMES = $(shell find $(TB_TESTS_DIR) -type f \( -iname "*test.py" \) -exec basename {} .py \; | paste -s -d ',')
+MODULE := $(TB_TESTS_FILENAMES)
 
 # include cocotb's make rules to take care of the simulator setup
 include $(shell cocotb-config --makefiles)/Makefile.sim
