@@ -14,6 +14,8 @@ from uvc.sdt.src import *
 from cl_marb_tb_config import cl_marb_tb_config
 from uvc.apb.src.cl_apb_interface import cl_apb_interface
 from cl_marb_tb_env import cl_marb_tb_env
+
+
 from uvc.sdt.src.sdt_common import DriverType
 from uvc.sdt.src.sdt_common import SequenceItemOverride
 
@@ -49,14 +51,37 @@ class cl_marb_tb_base_test(uvm_test):
         # Create configuration object
         self.cfg = cl_marb_tb_config("cfg")
 
+        # SDT agent Producer configuration
+        self.cfg.sdt_cfg_prod.driver                  = DriverType.PRODUCER
+        self.cfg.sdt_cfg_prod.create_default_coverage = False
+        self.cfg.sdt_cfg_prod.seq_item_override       = SequenceItemOverride.USER_DEFINED
+        # SDT agent Consumer configuration
+        self.cfg.sdt_cfg_cons.driver                  = DriverType.CONSUMER
+        self.cfg.sdt_cfg_cons.create_default_coverage = False
+        self.cfg.sdt_cfg_cons.seq_item_override       = SequenceItemOverride.USER_DEFINED
+
 
         # APB agent configuration
         self.cfg.apb_cfg.driver                      = DriverType.PRODUCER
         self.cfg.apb_cfg.create_default_coverage     = False
         self.cfg.apb_cfg.seq_item_override           = SequenceItemOverride.USER_DEFINED
 
+        #SDT interface 00
+        self.sdt_if_prod_c0 = cl_sdt_interface(self.dut.clk, self.dut.rst)
+        self.sdt_if_cons_c0 = cl_sdt_interface(self.dut.clk, self.dut.rst)
+        #SDT interface 01
+        self.sdt_if_prod_c1 = cl_sdt_interface(self.dut.clk, self.dut.rst)
+        self.sdt_if_cons_c1 = cl_sdt_interface(self.dut.clk, self.dut.rst)
+        #SDT interface 02
+        self.sdt_if_prod_c2 = cl_sdt_interface(self.dut.clk, self.dut.rst)
+        self.sdt_if_cons_c2 = cl_sdt_interface(self.dut.clk, self.dut.rst)
+        #SDT interface memory
+        self.sdt_if_prod_m = cl_sdt_interface(self.dut.clk, self.dut.rst)
+        self.sdt_if_cons_m = cl_sdt_interface(self.dut.clk, self.dut.rst)
 
-        self.apb_if       = cl_apb_interface(self.dut.clk, self.dut.rst)
+
+        #APB interface
+        self.apb_if = cl_apb_interface(self.dut.clk, self.dut.rst)
 
         # Set interfaces in cfg
         self.cfg.apb_cfg.vif           = self.apb_if
@@ -72,16 +97,32 @@ class cl_marb_tb_base_test(uvm_test):
         self.logger.info("Start connect_phase() -> MARB base test")
         super().connect_phase()
 
+        for interface in [
+            self.sdt_if_prod_c0, self.sdt_if_cons_c0, 
+            self.sdt_if_prod_c1, self.sdt_if_cons_c1, 
+            self.sdt_if_prod_c2, self.sdt_if_cons_c2,
+            self.sdt_if_prod_m, self.sdt_if_cons_m]: 
+            
+            interface.connect(
+                rd         = self.dut.rd,
+                wr         = self.dut.wr,
+                addr       = self.dut.addr,
+                wr_data    = self.dut.wr_data,
+                rd_data    = self.dut.rd_data,
+                ack        = self.dut.ack)
 
-        self.apb_if.connect(wr_signal      = self.dut.conf_wr,
-                           sel_signal      = self.dut.conf_sel,
-                           enable_signal   = self.dut.conf_enable,
-                           addr_signal     = self.dut.conf_addr,
-                           wdata_signal    = self.dut.conf_wdata,
-                           strb_signal     = self.dut.conf_strb,
-                           rdata_signal    = self.dut.conf_rdata,
-                           ready_signal    = self.dut.conf_ready,
-                           slverr_signal   = self.dut.conf_slverr)
+
+
+        self.apb_if.connect(
+            wr_signal      = self.dut.conf_wr,
+            sel_signal      = self.dut.conf_sel,
+            enable_signal   = self.dut.conf_enable,
+            addr_signal     = self.dut.conf_addr,
+            wdata_signal    = self.dut.conf_wdata,
+            strb_signal     = self.dut.conf_strb,
+            rdata_signal    = self.dut.conf_rdata,
+            ready_signal    = self.dut.conf_ready,
+            slverr_signal   = self.dut.conf_slverr)
 
         self.logger.info("End connect_phase() -> MARB base test")
 

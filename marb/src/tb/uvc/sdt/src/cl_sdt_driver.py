@@ -34,7 +34,8 @@ class cl_std_driver(uvm_driver):
         elif self.cfg.driver_type is DriverType.CONSUMER:
             await self.consumer_loop()
         else:
-            assert False, "Unknown type of handler"
+            assert False, "Unknown type of handler in sdt driver"
+        
 
     async def producer_loop(self):
         req = await self.seq_item_port.get_next_item()
@@ -45,15 +46,19 @@ class cl_std_driver(uvm_driver):
         self.rsp.set_id_info(req)
 
         self.vif.addr.value = req.addr
+
+        await RisingEdge(self.vif.clk)
         if req.access == AccessType.WR:
             self.vif.wr_data.value = self.req.data
             self.vif.wr.value = 1
         else:
             self.vif.rd = 1
-
+    
         await FallingEdge(self.vif.ack)
         self.reset_bus_producer()
         self.seq_item_port.item_done(self.rsp)
+        self.seq_item_port.put_response(self.rsp)
+
 
     def reset_bus_producer(self):
         self.vif.addr.value = 0
@@ -63,7 +68,7 @@ class cl_std_driver(uvm_driver):
 
     async def consumer_loop(self):
         while True:
-            await RisingEdge(self.ack)
+            await RisingEdge(self.vif.ack)
             await ReadOnly()
 
             if self.vid.rd.value == 1:
@@ -75,6 +80,7 @@ class cl_std_driver(uvm_driver):
                 self.rsp.data = self.vid.wr_data
                 self.rsp.addr = self.vid.addr
                 self.rsp.access = AccessType.WR
-
             else:
                 assert False, "Invalid consumer SDT transaction"
+            self.seq_item_port.item_done(self.rsp)
+            self.seq_item_port.put_response(self.rsp)
