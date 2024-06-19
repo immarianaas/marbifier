@@ -56,8 +56,6 @@ class cl_sdt_single_seq(cl_sdt_base_seq):
         await self.finish_item(self.s_item)
         print(f"\n3. {self.s_item}\n")
 
-        print()
-
 class cl_sdt_single_zd_seq(cl_sdt_single_seq):
     """Sequence generating one random zero delay item"""
     def __init__(self, name = "sdt_single_zd_seq"):

@@ -25,6 +25,9 @@ class cl_marb_static_test(cl_marb_tb_base_test):
         await conf_seq.start(self.marb_tb_env.virtual_sequencer)
 
         self.top_seq = cl_marb_static_seq.create("top_seq")
+        print("~ starting ~")
         await self.top_seq.start(self.marb_tb_env.virtual_sequencer)
+        print("~ ending ~")
+
 
         self.drop_objection()

@@ -23,6 +23,9 @@ class cl_marb_static_seq(cl_marb_tb_base_seq):
         await super().body()
         print("~ cl_marb_static_seq ~")
 
+        cocotb.start_soon(
+            self.m_seq.start(self.sequencer.sdt_m_sequencer))
+
         for _ in range(10):
             c0_seq_task = cocotb.start_soon(
                 self.c0_seq.start(self.sequencer.sdt_c0_sequencer))
@@ -30,9 +33,8 @@ class cl_marb_static_seq(cl_marb_tb_base_seq):
                 self.c1_seq.start(self.sequencer.sdt_c1_sequencer))
             c2_seq_task = cocotb.start_soon(
                 self.c2_seq.start(self.sequencer.sdt_c2_sequencer))
-            m_seq_task = cocotb.start_soon(
-                self.m_seq.start(self.sequencer.sdt_m_sequencer))
-            await Combine(c0_seq_task, c1_seq_task, c2_seq_task, m_seq_task)
+
+            await Combine(c0_seq_task, c1_seq_task, c2_seq_task)
 
         # Start sequences
         # self.sequencer.logger.debug("Starting setup seq")
