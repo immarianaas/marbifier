@@ -44,12 +44,19 @@ class cl_sdt_single_seq(cl_sdt_base_seq):
         if self.sequencer.cfg.driver == DriverType.PRODUCER:
             await super().body()
 
+        print(f"\n1.{self.s_item}\n")
+
         await self.start_item(self.s_item)
+
+        print(f"\n2. {self.s_item}\n")
 
         self.sequencer.logger.debug(self.s_item)
 
         # Send transaction to driver
         await self.finish_item(self.s_item)
+        print(f"\n3. {self.s_item}\n")
+
+        print()
 
 class cl_sdt_single_zd_seq(cl_sdt_single_seq):
     """Sequence generating one random zero delay item"""

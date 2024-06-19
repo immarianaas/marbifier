@@ -21,11 +21,10 @@ class cl_marb_static_test(cl_marb_tb_base_test):
         conf_seq = cl_reg_simple_seq.create("conf_seq")
         conf_seq.randomize()
 
-        cocotb.start_soon(conf_seq.start(self.marb_tb_env.virtual_sequencer))
+        # cocotb.start_soon(conf_seq.start(self.marb_tb_env.virtual_sequencer))
+        await conf_seq.start(self.marb_tb_env.virtual_sequencer)
 
         self.top_seq = cl_marb_static_seq.create("top_seq")
         await self.top_seq.start(self.marb_tb_env.virtual_sequencer)
 
         self.drop_objection()
-
-        self.logger.info("End run_phase() -> MARB static test")

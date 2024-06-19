@@ -20,7 +20,7 @@ class uvm_reg_ext(uvm_reg):
     # 18.4.4.9 / 18.8.5.3
     async def write(self, value):
         """Write of ~value~ to register through register-model, return ~status~"""
-
+        print("write func")
         # create an abstract transaction for this operation
         rw = uvm_reg_item.create("write_item")
 
