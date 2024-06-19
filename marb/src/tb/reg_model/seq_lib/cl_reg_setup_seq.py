@@ -15,11 +15,10 @@ class cl_reg_setup_seq(cl_reg_base_seq):
         #  Setup up sequence
         ######################
 
-        """
         print("1. cl_reg_setup_seq")
         # Write the value 0 into the ctrl register
-        # status = await self.sequencer.reg_model.ctrl_reg.write(1)
-        status = await self.sequencer.reg_model.ctrl_reg.read()
+        status = await self.sequencer.reg_model.ctrl_reg.write(1)
+        # status = await self.sequencer.reg_model.ctrl_reg.read()
 
         print("2. cl_reg_setup_seq")
 
@@ -27,10 +26,9 @@ class cl_reg_setup_seq(cl_reg_base_seq):
         if status == uvm_status_e.UVM_IS_OK:
             self.sequencer.logger.info(
                 f"SETUP SEQ: written {0} "
-                f"to dprio_reg, status = {status}") # TODO change
+                f"to dprio_reg, status = {status}")  # TODO change
         else:
             self.sequencer.logger.error("STATUS is NOT_OK")
-        """
 
         print("11. cl_reg_setup_seq")
         # Read the value of the DPRIO register
