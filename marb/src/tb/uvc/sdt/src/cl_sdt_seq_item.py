@@ -4,11 +4,12 @@ from pyuvm import uvm_sequence_item
 import vsc
 from .sdt_common import *
 
+
 @vsc.randobj
 class cl_sdt_seq_item(uvm_sequence_item, object):
     """Common base sequence item for the SDT agent"""
 
-    def __init__(self, name = "sdt_item"):
+    def __init__(self, name="sdt_item"):
         uvm_sequence_item.__init__(self, name)
         object.__init__(self)
 
@@ -27,6 +28,7 @@ class cl_sdt_seq_item(uvm_sequence_item, object):
     ########################
     #  Soft constraints
     #######################
+
     @vsc.constraint
     def c_default_consumer_delay_cycles(self):
         """Default consumer delay cycle of 1"""

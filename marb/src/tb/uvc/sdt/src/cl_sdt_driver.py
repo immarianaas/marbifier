@@ -51,15 +51,15 @@ class cl_sdt_driver(uvm_driver):
             assert False, "Unknown type of handler in sdt driver"
 
     async def producer_loop(self):
-        # req = await self.seq_item_port.get_next_item()
-
         # handle response object
 
+        # but first, reset pins
+        self.reset_bus_producer()
+        print(f"[producer loop] begin; name = {self.get_name()}")
+        await ReadWrite()
+        await RisingEdge(self.vif.clk)
         self.vif.addr.value = self.req.addr
 
-        print("\n11.\n")
-
-        await RisingEdge(self.vif.clk)
         if self.req.access == AccessType.WR:
             self.vif.wr_data.value = self.req.data
             self.vif.wr.value = 1
@@ -68,10 +68,8 @@ class cl_sdt_driver(uvm_driver):
             self.vif.wr.value = 0
             self.vif.rd.value = 1
 
-        print("\n22.\n")
-
         await FallingEdge(self.vif.ack)
-        print("\n33.\n")
+        print("[producer loop] after ack goes down")
 
         self.reset_bus_producer()
         # self.seq_item_port.item_done(self.rsp)
