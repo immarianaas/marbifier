@@ -8,7 +8,9 @@
 
 from pyuvm import *
 from .cl_apb_sequencer import cl_apb_sequencer
+from .cl_apb_driver import cl_apb_driver
 from .cl_apb_monitor import cl_apb_monitor
+from .cl_apb_driver import cl_apb_driver
 from .cl_apb_coverage import cl_apb_coverage
 from .apb_common import *
 from .cl_apb_seq_item import cl_apb_seq_item
@@ -34,6 +36,7 @@ class cl_apb_agent(uvm_agent):
         self.monitor = None
 
         # Signal driver
+        self.driver = None
 
         # Coverage transactor
         self.coverage = None
@@ -54,6 +57,8 @@ class cl_apb_agent(uvm_agent):
 
         if self.cfg.is_active == uvm_active_passive_enum.UVM_ACTIVE:
             # Create driver and pass handle to cfg if active
+            ConfigDB().set(self, "driver", "cfg", self.cfg)
+            self.driver = cl_apb_driver.create("driver", self)
 
             # Create sequencer and pass handle to cfg if active
             ConfigDB().set(self, "sequencer", "cfg", self.cfg)
@@ -74,6 +79,8 @@ class cl_apb_agent(uvm_agent):
         super().connect_phase()
 
         # Connect driver and sequencer
+        if self.cfg.is_active == uvm_active_passive_enum.UVM_ACTIVE:
+            self.driver.seq_item_port.connect(self.sequencer.seq_item_export)
 
         # Connect monitor analysis port
         self.monitor.ap.connect(self.ap)
