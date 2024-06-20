@@ -5,6 +5,8 @@ from cocotb.queue import Queue
 import cocotb
 from ref_model.seq_item import SeqItem, SeqItemOut
 
+from cocotb.triggers import NextTimeStep, Timer
+
 # Reference model for the marb design
 
 
@@ -41,27 +43,32 @@ class marb_ref_model(uvm_component):
 
         self.items = Queue(maxsize=-1)
 
+        self.c0_items = Queue(maxsize=-1)
+        self.c1_items = Queue(maxsize=-1)
+        self.c2_items = Queue(maxsize=-1)
+
     async def run_phase(self):
-        print("\n[RUN PHASE]\n")
 
         await super().run_phase()
         cocotb.start_soon(self.static_fifos2queue())
         cocotb.start_soon(self.sample_item())
 
-        print("[RUN PHASE] end of function")
-
-    async def sample_item(self): # TODO: loop
+    async def sample_item(self):
         print("\n[sample_item]\n")
 
         if not self.is_static:
             return
 
         while True:
-            # the one that wins is going to be on top of the queue
-            item_to_handle = await self.items.get()
-            print("\n[sample_item] got an item\n")
+            await Timer(1, units='step')
 
-            output_item = item_to_handle.clone()        
+            item_to_handle = await self.get_item_to_handle()
+            if item_to_handle is None:
+                continue
+
+            print("\nitem_to:handle\n")
+
+            output_item = item_to_handle.clone()
             output_item.data = output_item.data if output_item.access == 1 else 42
 
             """
@@ -72,10 +79,21 @@ class marb_ref_model(uvm_component):
             """
             self.analysis_port.write(output_item)
 
-    async def static_fifos2queue(self):
-        print("[static_fifos2queue]")
+    async def get_item_to_handle(self):
+        if not self.c0_items.empty():
+            return await self.c0_items.get()
 
-        async def add_item_to_queue(fifo):
+        if not self.c1_items.empty():
+            return await self.c1_items.get()
+
+        if not self.c2_items.empty():
+            return await self.c2_items.get()
+        
+        return None
+
+    async def static_fifos2queue(self):
+
+        async def add_item_to_queue(fifo, queue):
             while True:
                 fifo_item = await fifo.get()
                 """
@@ -89,9 +107,9 @@ class marb_ref_model(uvm_component):
 
                 await self.items.put(seq_item.clone())
                 """
-                await self.items.put(fifo_item)
+                await queue.put(fifo_item)
 
         # not quite correct
-        cocotb.start_soon(add_item_to_queue(self.uvc_sdt_c0_fifo))
-        cocotb.start_soon(add_item_to_queue(self.uvc_sdt_c1_fifo))
-        cocotb.start_soon(add_item_to_queue(self.uvc_sdt_c2_fifo))
+        cocotb.start_soon(add_item_to_queue(self.uvc_sdt_c0_fifo, self.c0_items))
+        cocotb.start_soon(add_item_to_queue(self.uvc_sdt_c1_fifo, self.c1_items))
+        cocotb.start_soon(add_item_to_queue(self.uvc_sdt_c2_fifo, self.c2_items))

@@ -55,7 +55,6 @@ class cl_sdt_driver(uvm_driver):
 
         # but first, reset pins
         self.reset_bus_producer()
-        print(f"[producer loop] begin; name = {self.get_name()}")
         await ReadWrite()
         await RisingEdge(self.vif.clk)
         self.vif.addr.value = self.req.addr
@@ -69,7 +68,6 @@ class cl_sdt_driver(uvm_driver):
             self.vif.rd.value = 1
 
         await FallingEdge(self.vif.ack)
-        print("[producer loop] after ack goes down")
 
         self.reset_bus_producer()
         # self.seq_item_port.item_done(self.rsp)

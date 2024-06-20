@@ -139,7 +139,6 @@ class cl_sdt_count_seq(cl_sdt_base_seq):
             if self.sequencer.cfg.driver == DriverType.PRODUCER:
                 await super().body()
 
-            print("[cl_sdt_count_seq] new item")
             # Create transaction
             seq_item_name = self.sequencer.get_full_name() + ".sdt_count_seq_item"
             self.s_item = cl_sdt_seq_item.create(seq_item_name)
