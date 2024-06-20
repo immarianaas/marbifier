@@ -5,7 +5,7 @@ from cocotb.queue import Queue
 import cocotb
 from ref_model.seq_item import SeqItem, SeqItemOut
 
-from cocotb.triggers import NextTimeStep, Timer
+from cocotb.triggers import NextTimeStep, Timer, ClockCycles
 
 # Reference model for the marb design
 
@@ -60,7 +60,7 @@ class marb_ref_model(uvm_component):
             return
 
         while True:
-            await Timer(1, units='step')
+            await ClockCycles(cocotb.top.clk, 1)
 
             item_to_handle = await self.get_item_to_handle()
             if item_to_handle is None:
@@ -88,7 +88,7 @@ class marb_ref_model(uvm_component):
 
         if not self.c2_items.empty():
             return await self.c2_items.get()
-        
+
         return None
 
     async def static_fifos2queue(self):
@@ -110,6 +110,9 @@ class marb_ref_model(uvm_component):
                 await queue.put(fifo_item)
 
         # not quite correct
-        cocotb.start_soon(add_item_to_queue(self.uvc_sdt_c0_fifo, self.c0_items))
-        cocotb.start_soon(add_item_to_queue(self.uvc_sdt_c1_fifo, self.c1_items))
-        cocotb.start_soon(add_item_to_queue(self.uvc_sdt_c2_fifo, self.c2_items))
+        cocotb.start_soon(add_item_to_queue(
+            self.uvc_sdt_c0_fifo, self.c0_items))
+        cocotb.start_soon(add_item_to_queue(
+            self.uvc_sdt_c1_fifo, self.c1_items))
+        cocotb.start_soon(add_item_to_queue(
+            self.uvc_sdt_c2_fifo, self.c2_items))
