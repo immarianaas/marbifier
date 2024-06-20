@@ -15,7 +15,7 @@ class cl_marb_tb_config(uvm_object):
         self.sdt_cfg_c2 = cl_sdt_config.create("sdt_cfg_c2")
         self.sdt_cfg_m = cl_sdt_config.create("sdt_cfg_m")
 
-        self.ADDR_WDITH = None
+        self.ADDR_WIDTH = None
         self.DATA_WIDTH = None
 
     def build_phase(self):
