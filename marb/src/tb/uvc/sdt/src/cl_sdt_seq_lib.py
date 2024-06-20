@@ -143,6 +143,7 @@ class cl_sdt_count_seq(cl_sdt_base_seq):
             # Create transaction
             seq_item_name = self.sequencer.get_full_name() + ".sdt_count_seq_item"
             self.s_item = cl_sdt_seq_item.create(seq_item_name)
+            self.s_item.randomize()
 
             await self.start_item(self.s_item)
 

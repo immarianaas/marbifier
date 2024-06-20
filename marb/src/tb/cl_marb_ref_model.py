@@ -56,20 +56,21 @@ class marb_ref_model(uvm_component):
         if not self.is_static:
             return
 
-        # the one that wins is going to be on top of the queue
-        item_to_handle = await self.items.get()
-        print("\n[sample_item] got an item\n")
+        while True:
+            # the one that wins is going to be on top of the queue
+            item_to_handle = await self.items.get()
+            print("\n[sample_item] got an item\n")
 
-        output_item = item_to_handle.clone()        
-        output_item.data = output_item.data if output_item.access == 1 else 42
+            output_item = item_to_handle.clone()        
+            output_item.data = output_item.data if output_item.access == 1 else 42
 
-        """
-        output_item = SeqItemOut(
-            DATA_WIDTH=self.DATA_WIDTH, ADDR_WIDTH=self.ADDR_WIDTH)
-        output_item.set_data(base=item_to_handle, rd_data=42,
-                             ack=0)  # read data we dont know ?
-        """
-        self.analysis_port.write(output_item)
+            """
+            output_item = SeqItemOut(
+                DATA_WIDTH=self.DATA_WIDTH, ADDR_WIDTH=self.ADDR_WIDTH)
+            output_item.set_data(base=item_to_handle, rd_data=42,
+                                ack=0)  # read data we dont know ?
+            """
+            self.analysis_port.write(output_item)
 
     async def static_fifos2queue(self):
         print("[static_fifos2queue]")
