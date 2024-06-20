@@ -61,29 +61,29 @@ class cl_marb_tb_base_test(uvm_test):
         self.cfg.sdt_cfg_c0.driver = DriverType.PRODUCER
         self.cfg.sdt_cfg_c0.create_default_coverage = False
         self.cfg.sdt_cfg_c0.seq_item_override = SequenceItemOverride.USER_DEFINED
-        self.cfg.sdt_cfg_c0.addr_width = self.dut.ADDR_WIDTH.value
-        self.cfg.sdt_cfg_c0.data_width = self.dut.DATA_WIDTH.value
+        self.cfg.sdt_cfg_c0.ADDR_WIDTH = self.dut.ADDR_WIDTH.value
+        self.cfg.sdt_cfg_c0.DATA_WIDTH = self.dut.DATA_WIDTH.value
 
         # SDT agent c1 configuration
         self.cfg.sdt_cfg_c1.driver = DriverType.PRODUCER
         self.cfg.sdt_cfg_c1.create_default_coverage = False
         self.cfg.sdt_cfg_c1.seq_item_override = SequenceItemOverride.USER_DEFINED
-        self.cfg.sdt_cfg_c1.addr_width = self.dut.ADDR_WIDTH.value
-        self.cfg.sdt_cfg_c1.data_width = self.dut.DATA_WIDTH.value
+        self.cfg.sdt_cfg_c1.ADDR_WIDTH = self.dut.ADDR_WIDTH.value
+        self.cfg.sdt_cfg_c1.DATA_WIDTH = self.dut.DATA_WIDTH.value
 
         # SDT agent c2 configuration
         self.cfg.sdt_cfg_c2.driver = DriverType.PRODUCER
         self.cfg.sdt_cfg_c2.create_default_coverage = False
         self.cfg.sdt_cfg_c2.seq_item_override = SequenceItemOverride.USER_DEFINED
-        self.cfg.sdt_cfg_c2.addr_width = self.dut.ADDR_WIDTH.value
-        self.cfg.sdt_cfg_c2.data_width = self.dut.DATA_WIDTH.value
+        self.cfg.sdt_cfg_c2.ADDR_WIDTH = self.dut.ADDR_WIDTH.value
+        self.cfg.sdt_cfg_c2.DATA_WIDTH = self.dut.DATA_WIDTH.value
 
         # SDT agent m configuration
         self.cfg.sdt_cfg_m.driver = DriverType.CONSUMER
         self.cfg.sdt_cfg_m.create_default_coverage = False
         self.cfg.sdt_cfg_m.seq_item_override = SequenceItemOverride.USER_DEFINED
-        self.cfg.sdt_cfg_m.addr_width = self.dut.ADDR_WIDTH.value
-        self.cfg.sdt_cfg_m.data_width = self.dut.DATA_WIDTH.value
+        self.cfg.sdt_cfg_m.ADDR_WIDTH = self.dut.ADDR_WIDTH.value
+        self.cfg.sdt_cfg_m.DATA_WIDTH = self.dut.DATA_WIDTH.value
 
         # APB agent configuration
         self.cfg.apb_cfg.driver = DriverType.PRODUCER
@@ -93,22 +93,22 @@ class cl_marb_tb_base_test(uvm_test):
         # SDT interface c0
         self.sdt_if_c0 = cl_sdt_interface(self.dut.clk, self.dut.rst)
         self.sdt_if_c0._set_width_values(
-            ADDR_WIDTH=self.cfg.sdt_cfg_c0.addr_width, DATA_WIDTH=self.cfg.sdt_cfg_c0.data_width)
+            ADDR_WIDTH=self.cfg.sdt_cfg_c0.ADDR_WIDTH, DATA_WIDTH=self.cfg.sdt_cfg_c0.DATA_WIDTH)
         self.cfg.sdt_cfg_c0.vif = self.sdt_if_c0
 
         self.sdt_if_c1 = cl_sdt_interface(self.dut.clk, self.dut.rst)
         self.sdt_if_c1._set_width_values(
-            self.cfg.sdt_cfg_c1.addr_width, self.cfg.sdt_cfg_c1.data_width)
+            self.cfg.sdt_cfg_c1.ADDR_WIDTH, self.cfg.sdt_cfg_c1.DATA_WIDTH)
         self.cfg.sdt_cfg_c1.vif = self.sdt_if_c1
 
         self.sdt_if_c2 = cl_sdt_interface(self.dut.clk, self.dut.rst)
         self.sdt_if_c2._set_width_values(
-            self.cfg.sdt_cfg_c2.addr_width, self.cfg.sdt_cfg_c2.data_width)
+            self.cfg.sdt_cfg_c2.ADDR_WIDTH, self.cfg.sdt_cfg_c2.DATA_WIDTH)
         self.cfg.sdt_cfg_c2.vif = self.sdt_if_c2
 
         self.sdt_if_m = cl_sdt_interface(self.dut.clk, self.dut.rst)
         self.sdt_if_m._set_width_values(
-            self.cfg.sdt_cfg_m.addr_width, self.cfg.sdt_cfg_m.data_width)
+            self.cfg.sdt_cfg_m.ADDR_WIDTH, self.cfg.sdt_cfg_m.DATA_WIDTH)
         self.cfg.sdt_cfg_m.vif = self.sdt_if_m
 
         # APB interface

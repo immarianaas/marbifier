@@ -1,10 +1,13 @@
 
 from pyuvm import uvm_component, uvm_tlm_analysis_fifo, uvm_analysis_port
 import time
-import queue
-from ref_model import SeqItem, SeqItemOut
+from cocotb.queue import Queue
+import cocotb
+from ref_model.seq_item import SeqItem, SeqItemOut
 
-#Reference model for the marb design
+# Reference model for the marb design
+
+
 class marb_ref_model(uvm_component):
 
     def __init__(self, name="marb_ref_model", parent=None):
@@ -16,9 +19,11 @@ class marb_ref_model(uvm_component):
         self.uvc_sdt_m_fifo = None
         self.uvc_apb_fifo = None
 
+        self.items = None
+
         self.is_static = True
-        self.order = (0,0,0)
-        self.DATA_WIDTH = 1 # i dont know
+        self.order = (0, 0, 0)
+        self.DATA_WIDTH = 1  # i dont know
         self.ADDR_WIDTH = 1
 
     def build_phase(self):
@@ -28,59 +33,64 @@ class marb_ref_model(uvm_component):
         self.uvc_sdt_c1_fifo = uvm_tlm_analysis_fifo("uvc_sdt_c1_fifo", self)
         self.uvc_sdt_c2_fifo = uvm_tlm_analysis_fifo("uvc_sdt_c2_fifo", self)
         self.uvc_sdt_m_fifo = uvm_tlm_analysis_fifo("uvc_sdt_m_fifo", self)
-        self.uvc_apb_fifo = uvm_tlm_analysis_fifo("uvc_apb_fifo", self) # TODO: what to do with this?
-        self.analysis_port = uvm_analysis_port(f"{self.get_name()}_analysis_port", self)
+        self.uvc_apb_fifo = uvm_tlm_analysis_fifo(
+            "uvc_apb_fifo", self)  # TODO: what to do with this?
+
+        self.analysis_port = uvm_analysis_port(
+            f"{self.get_name()}_analysis_port", self)
+
+        self.items = Queue(maxsize=-1)
 
     async def run_phase(self):
+        print("\n[RUN PHASE]\n")
+
         await super().run_phase()
-    
-    
+        cocotb.start_soon(self.static_fifos2queue())
+        cocotb.start_soon(self.sample_item())
 
+        print("[RUN PHASE] end of function")
 
-    async def sample_item(self):
-        if not self.is_static: return
+    async def sample_item(self): # TODO: loop
+        print("\n[sample_item]\n")
 
-        items = queue.Queue(maxsize=-1)
-        seq_item = SeqItem(DATA_WIDTH=self.DATA_WIDTH, ADDR_WIDTH= self.ADDR_WIDTH)
+        if not self.is_static:
+            return
 
-        def add_item_to_queue(fifo_item):
-            seq_item.set_data(rd=0 if fifo_item.access == 1 else 1,
-                              wr=fifo_item.access,
-                              addr=fifo_item.addr,
-                              wr_data=fifo_item.data )
-            items.put( seq_item.clone() )
-
-        while items.empty():
-            # get first message that appears
-            # simulate clock?
-            time.sleep(0.5)
-            if not self.uvc_sdt_c0_fifo.is_empty():
-                fifo_item = await self.uvc_sdt_c0_fifo.get() # cl_sdt_seq_item
-                add_item_to_queue(fifo_item.clone())
-
-            if not self.uvc_sdt_c1_fifo.is_empty():
-                fifo_item = await self.uvc_sdt_c1_fifo.get() 
-                add_item_to_queue(fifo_item.clone())
-
-            if not self.uvc_sdt_c2_fifo.is_empty():
-                fifo_item = await self.uvc_sdt_c2_fifo.get()
-                add_item_to_queue(fifo_item.clone())
-
-            
         # the one that wins is going to be on top of the queue
-        item_to_handle = items.get()
+        item_to_handle = await self.items.get()
+        print("\n[sample_item] got an item\n")
 
-        output_item = SeqItemOut(DATA_WIDTH=self.DATA_WIDTH, ADDR_WIDTH= self.ADDR_WIDTH)
-        output_item.set_data(base=item_to_handle, rd_data=1, ack=0) #read data we dont know ?
+        output_item = item_to_handle.clone()        
+        output_item.data = output_item.data if output_item.access == 1 else 42
 
+        """
+        output_item = SeqItemOut(
+            DATA_WIDTH=self.DATA_WIDTH, ADDR_WIDTH=self.ADDR_WIDTH)
+        output_item.set_data(base=item_to_handle, rd_data=42,
+                             ack=0)  # read data we dont know ?
+        """
         self.analysis_port.write(output_item)
 
+    async def static_fifos2queue(self):
+        print("[static_fifos2queue]")
 
-    
-        
-            
+        async def add_item_to_queue(fifo):
+            while True:
+                fifo_item = await fifo.get()
+                """
+                seq_item = SeqItem(DATA_WIDTH=self.DATA_WIDTH,
+                                   ADDR_WIDTH=self.ADDR_WIDTH)
 
-        
+                seq_item.set_data(rd=0 if fifo_item.access == 1 else 1,
+                                  wr=fifo_item.access,
+                                  addr=fifo_item.addr,
+                                  wr_data=fifo_item.data)
 
-        
+                await self.items.put(seq_item.clone())
+                """
+                await self.items.put(fifo_item)
 
+        # not quite correct
+        cocotb.start_soon(add_item_to_queue(self.uvc_sdt_c0_fifo))
+        cocotb.start_soon(add_item_to_queue(self.uvc_sdt_c1_fifo))
+        cocotb.start_soon(add_item_to_queue(self.uvc_sdt_c2_fifo))

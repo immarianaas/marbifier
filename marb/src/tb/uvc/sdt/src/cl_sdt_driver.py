@@ -85,24 +85,31 @@ class cl_sdt_driver(uvm_driver):
         # handle response object
         self.reset_bus_consumer()
 
-        await ReadOnly()
-        while (self.vif.rd.value == 0 and self.vif.wr.value == 0):
+        while True:
             await ReadOnly()
+            if (self.vif.rd.value == 0 and self.vif.wr.value == 0):
+                break
+
             await RisingEdge(self.vif.clk)
 
-        await ReadWrite()
+        # await ReadWrite()
         if self.vif.rd.value == 1:
-            self.rsp.addr = self.vif.addr
+            self.logger.error(f"ADDR VALUE: {self.vif.addr.value}")
+            self.rsp.addr = self.vif.addr.value
             self.rsp.access = AccessType.RD
 
         elif self.vif.wr.value == 1:
-            self.rsp.data = self.vif.wr_data
-            self.rsp.addr = self.vif.addr
+            self.rsp.data = self.vif.wr_data.value
+            self.rsp.addr = self.vif.addr.value
             self.rsp.access = AccessType.WR
 
-        self.vif.rd_data.value = 42
+        await RisingEdge(self.vif.clk)
+        await ReadWrite()
+
+        self.vif.rd_data.value = 42 # TODO: what to return here?
         self.vif.ack.value = 1
         await ClockCycles(self.vif.clk, 1)
+        self.reset_bus_consumer()
 
     def reset_bus_consumer(self):
         self.vif.ack.value = 0

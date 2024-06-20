@@ -15,13 +15,13 @@ class cl_reg_setup_seq(cl_reg_base_seq):
         #  Setup up sequence
         ######################
 
-        # Write the value 0 into the ctrl register
+        # Write the value 1 into the ctrl register
         status = await self.sequencer.reg_model.ctrl_reg.write(1)
         # Check the status received
         if status == uvm_status_e.UVM_IS_OK:
             self.sequencer.logger.info(
-                f"SETUP SEQ: written {0} "
-                f"to dprio_reg, status = {status}")  # TODO change
+                f"SETUP SEQ: written {1} "
+                f"to ctrl_reg, status = {status}")
         else:
             self.sequencer.logger.error("STATUS is NOT_OK")
 

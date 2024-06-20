@@ -15,18 +15,18 @@ class cl_marb_tb_config(uvm_object):
         self.sdt_cfg_c2 = cl_sdt_config.create("sdt_cfg_c2")
         self.sdt_cfg_m = cl_sdt_config.create("sdt_cfg_m")
 
-        self.addr_width = None
-        self.data_width = None
+        self.ADDR_WDITH = None
+        self.DATA_WIDTH = None
 
     def build_phase(self):
-        self.sdt_cfg_c0.DATA_WIDTH = self.data_width
-        self.sdt_cfg_c0.ADDR_WIDTH = self.addr_width
+        self.sdt_cfg_c0.DATA_WIDTH = self.DATA_WIDTH
+        self.sdt_cfg_c0.DATA_WIDTH = self.DATA_WIDTH
 
-        self.sdt_cfg_c1.DATA_WIDTH = self.data_width
-        self.sdt_cfg_c1.ADDR_WIDTH = self.addr_width
+        self.sdt_cfg_c1.DATA_WIDTH = self.DATA_WIDTH
+        self.sdt_cfg_c1.DATA_WIDTH = self.DATA_WIDTH
 
-        self.sdt_cfg_c2.DATA_WIDTH = self.data_width
-        self.sdt_cfg_c2.ADDR_WIDTH = self.addr_width
+        self.sdt_cfg_c2.DATA_WIDTH = self.DATA_WIDTH
+        self.sdt_cfg_c2.DATA_WIDTH = self.DATA_WIDTH
 
-        self.sdt_cfg_m.DATA_WIDTH = self.data_width
-        self.sdt_cfg_m.ADDR_WIDTH = self.addr_width
+        self.sdt_cfg_m.DATA_WIDTH = self.DATA_WIDTH
+        self.sdt_cfg_m.DATA_WIDTH = self.DATA_WIDTH
