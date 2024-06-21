@@ -36,7 +36,7 @@ class covergroup_memory(object):
                                          })
 
 
-@ vsc.covergroup
+@vsc.covergroup
 class covergroup_write_followed_by_read(object):
     def __init__(self, name, addr_width) -> None:
         self.options.per_instance = True
@@ -62,6 +62,33 @@ class covergroup_write_followed_by_read(object):
             [self.result_point, self.addr_point])
 
 
+@vsc.covergroup
+class covergroup_burst(object):
+    def __init__(self, name, addr_width) -> None:
+        self.options.per_instance = True
+        self.options.name = name
+
+        self.with_sample(length=vsc.uint32_t(), addr=vsc.bit_t(addr_width))
+
+        self.length_point = vsc.coverpoint(self.length,
+                                           bins={
+                                               "zero": vsc.bin(0),
+                                               "one": vsc.bin(1),
+                                               "b1": vsc.bin_array([4], [2, addr_width**2-1])
+                                           })
+
+        self.addr_point = vsc.coverpoint(self.addr,
+                                         bins={
+                                             "zero": vsc.bin(0),
+                                             # TODO: check the actual size
+                                             "valid1": vsc.bin([1, (2**addr_width)/2]),
+                                             "valid2": vsc.bin([(2**addr_width)/2 + 1, (2**addr_width)-1])
+                                         })
+
+        self.len_addr_cross = vsc.cross(
+            [self.length_point, self.addr_point])
+
+
 class cl_marb_coverage(uvm_subscriber):
 
     def __init__(self, name, parent):
@@ -70,8 +97,12 @@ class cl_marb_coverage(uvm_subscriber):
         self.cfg = None
         self.covergroup = None
 
-        self.past_read_addr = None
         self.past_addrs = []
+
+        # (read, addr)
+        self.past_operation = None
+        self.burst_count = 0
+        self.starting_addr = None
 
     def build_phase(self):
         super().build_phase()
@@ -86,6 +117,16 @@ class cl_marb_coverage(uvm_subscriber):
             addr_width=8
         )
 
+        self.rd_burst = covergroup_burst(
+            name=f"{self.get_name()}.cvg_read_burst",
+            addr_width=8
+        )
+
+        self.wr_burst = covergroup_burst(
+            name=f"{self.get_name()}.cvg_write_burst",
+            addr_width=8
+        )
+
     def write(self, item):
         print(item)
         rd = 0 if item.access == 1 else 1
@@ -94,6 +135,7 @@ class cl_marb_coverage(uvm_subscriber):
 
         self.covergroup.sample(rd, wr, addr)
         self.handle_read_followed_by_write(rd, wr, addr)
+        self.handle_bursts(rd, wr, addr)
 
     def handle_read_followed_by_write(self, rd, wr, addr):
 
@@ -115,25 +157,33 @@ class cl_marb_coverage(uvm_subscriber):
             else:
                 self.read_followed_by_write.sample(False, addr)
 
+    def handle_bursts(self, rd, wr, addr):
+        # burst is when read or write consecutive addresses
+        # but always the same kind of operation
 
-# burst is when read or write consecutive addresses
-# but always the same kind of operation
-#
-#
+        def reset_counters():
+            self.past_operation = (rd, addr)
+            self.burst_count = 1
+            self.starting_addr = addr
 
-        """
-        if wr == 1:
-            if self.past_read_addr is not None and self.past_read_addr == addr:
-                self.read_followed_by_write.sample(True)  # True
-            else:
-                self.read_followed_by_write.sample(False)  # False
-                self.past_read_addr = None
+        if self.past_operation is None:
+            return reset_counters()
 
-        elif rd == 1:
-            if self.past_read_addr is not None:
-                self.read_followed_by_write.sample(False)  # False
-            self.past_read_addr = addr
-        """
+        rd_past_op = self.past_operation[0]
+        addr_past_op = self.past_operation[1]
+
+        # if rd:
+        #     if rd_past_op == rd and addr == addr_past_op + 1:
+        #     self.rd_burst.sample()
+
+        if rd_past_op != rd or addr != addr_past_op + 1:
+            #self.burst.sample(self.burst_count, self.starting_addr)
+            reset_counters()
+        else:
+            # continuing the burst!
+            self.burst_count += 1
+
+        self.past_operation = (rd, addr)
 
     # def write(self, rd: int, wr: int, addr: int):
     #     self.covergroup.sample(rd, wr, addr)

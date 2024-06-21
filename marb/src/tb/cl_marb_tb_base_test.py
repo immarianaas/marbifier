@@ -60,7 +60,7 @@ class cl_marb_tb_base_test(uvm_test):
         # SDT agent c0 configuration
         self.cfg.sdt_cfg_c0.driver = DriverType.PRODUCER
         self.cfg.sdt_cfg_c0.create_default_coverage = False
-        self.cfg.sdt_cfg_c0.seq_item_override = SequenceItemOverride.USER_DEFINED
+        self.cfg.sdt_cfg_c0.seq_item_override = SequenceItemOverride.DEFAULT
         self.cfg.sdt_cfg_c0.ADDR_WIDTH = self.dut.ADDR_WIDTH.value
         self.cfg.sdt_cfg_c0.DATA_WIDTH = self.dut.DATA_WIDTH.value
 
