@@ -29,24 +29,37 @@ class covergroup_memory(object):
 
         self.addr_point = vsc.coverpoint(self.addr,
                                          bins={
-                                             "zero": vsc.bin_array([], 0),
+                                             "zero": vsc.bin(0),
                                              # TODO: check the actual size
-                                             "valid": vsc.bin_array([4], 1, 2**self.ADDR_WIDTH-1)
+                                             "valid1": vsc.bin([1, (2**self.ADDR_WIDTH)/2]),
+                                             "valid2": vsc.bin([(2**self.ADDR_WIDTH)/2 + 1, (2**self.ADDR_WIDTH)-1])
                                          })
 
 
-@vsc.covergroup
-class covergroup_read_followed_by_write(object):
-    def __init__(self, name) -> None:
+@ vsc.covergroup
+class covergroup_write_followed_by_read(object):
+    def __init__(self, name, addr_width) -> None:
         self.options.per_instance = True
         self.options.name = name
 
-        self.with_sample(result=vsc.bool_t())
+        self.with_sample(result=vsc.bool_t(), addr=vsc.bit_t(addr_width))
 
         self.result_point = vsc.coverpoint(self.result,
                                            bins={
-                                               "result": vsc.bin_array([], True, False)
+                                               "yes": vsc.bin(True),
+                                               "no": vsc.bin(False)
                                            })
+
+        self.addr_point = vsc.coverpoint(self.addr,
+                                         bins={
+                                             "zero": vsc.bin(0),
+                                             # TODO: check the actual size
+                                             "valid1": vsc.bin([1, (2**addr_width)/2]),
+                                             "valid2": vsc.bin([(2**addr_width)/2 + 1, (2**addr_width)-1])
+                                         })
+
+        self.result_addr_cross = vsc.cross(
+            [self.result_point, self.addr_point])
 
 
 class cl_marb_coverage(uvm_subscriber):
@@ -58,6 +71,7 @@ class cl_marb_coverage(uvm_subscriber):
         self.covergroup = None
 
         self.past_read_addr = None
+        self.past_addrs = []
 
     def build_phase(self):
         super().build_phase()
@@ -67,12 +81,47 @@ class cl_marb_coverage(uvm_subscriber):
                                             data_width=8,  # self.cfg.DATA_WIDTH,
                                             addr_width=8)  # self.cfg.ADDR_WIDTH)
 
-        self.read_followed_by_write = covergroup_read_followed_by_write(
-            name=f"{self.get_name()}.cvg_read_followed_by_write")
+        self.read_followed_by_write = covergroup_write_followed_by_read(
+            name=f"{self.get_name()}.cvg_read_followed_by_write",
+            addr_width=8
+        )
 
-    def write(self, rd: int, wr: int, addr: int):
+    def write(self, item):
+        print(item)
+        rd = 0 if item.access == 1 else 1
+        wr = item.access
+        addr = item.addr
+
         self.covergroup.sample(rd, wr, addr)
+        self.handle_read_followed_by_write(rd, wr, addr)
 
+    def handle_read_followed_by_write(self, rd, wr, addr):
+
+        # 1. receive a write (save the addr)
+        # 2. if a read to the same addr - positive
+        # 3. if a read to the diff addr - negative
+        # 4. we can have write followed by write  (nested stuff)
+        #
+
+        assert wr != 1 or rd != 1
+
+        if wr == 1:
+            self.past_addrs.append(addr)
+
+        if rd == 1:
+            if addr in self.past_addrs:
+                self.read_followed_by_write.sample(True, addr)
+                self.past_addrs.remove(addr)  # only deletes the first
+            else:
+                self.read_followed_by_write.sample(False, addr)
+
+
+# burst is when read or write consecutive addresses
+# but always the same kind of operation
+#
+#
+
+        """
         if wr == 1:
             if self.past_read_addr is not None and self.past_read_addr == addr:
                 self.read_followed_by_write.sample(True)  # True
@@ -84,6 +133,10 @@ class cl_marb_coverage(uvm_subscriber):
             if self.past_read_addr is not None:
                 self.read_followed_by_write.sample(False)  # False
             self.past_read_addr = addr
+        """
+
+    # def write(self, rd: int, wr: int, addr: int):
+    #     self.covergroup.sample(rd, wr, addr)
 
 
 # QUESTIONS:

@@ -20,7 +20,6 @@ from uvc.sdt.src.sdt_common import DriverType
 from uvc.sdt.src.sdt_common import SequenceItemOverride
 
 from reg_model.seq_lib.cl_reg_setup_seq import cl_reg_setup_seq
-from cl_marb_coverage import cl_marb_coverage
 
 
 @pyuvm.test()
@@ -122,11 +121,6 @@ class cl_marb_tb_base_test(uvm_test):
         ConfigDB().set(self, "marb_tb_env", "cfg", self.cfg)
         self.marb_tb_env = cl_marb_tb_env("marb_tb_env", self)
 
-        # Coverage
-        self.marb_cvg = cl_marb_coverage.create(
-            f"{self.get_name()}_coverage", self)
-        self.marb_cvg.cdb_set("cfg", self.cfg, "")
-
         self.logger.info("End build_phase() -> MARB base test")
 
     def connect_phase(self):
@@ -182,27 +176,11 @@ class cl_marb_tb_base_test(uvm_test):
         self.logger.info("Start run_phase() -> MARB base test")
         await super().run_phase()
 
-        cocotb.start_soon(self.monitor_loop_memory())
-
         await self.trigger_reset()
 
         # Instantiate register sequences for enabling and configuring the Memory Arbiter
 
         self.logger.info("End run_phase() -> MARB base test")
-
-    async def monitor_loop_memory(self):
-        while True:
-
-            # await RisingEdge(self.dut.clk)
-            await ClockCycles(self.dut.clk, 1)
-            await ReadOnly()
-
-            if self.dut.m_rd == 0 and self.dut.m_wr == 0:
-                continue
-
-            self.marb_cvg.write(rd=self.dut.m_rd,
-                                wr=self.dut.m_wr,
-                                addr=self.dut.m_addr)
 
     async def trigger_reset(self):
         """Activation and deactivation of reset """
