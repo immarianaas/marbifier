@@ -20,7 +20,7 @@ from uvc.sdt.src.sdt_common import DriverType
 from uvc.sdt.src.sdt_common import SequenceItemOverride
 
 from reg_model.seq_lib.cl_reg_setup_seq import cl_reg_setup_seq
-
+from cl_marb_assertions import cl_interface_assert_check
 
 @pyuvm.test()
 class cl_marb_tb_base_test(uvm_test):
@@ -121,6 +121,15 @@ class cl_marb_tb_base_test(uvm_test):
         ConfigDB().set(self, "marb_tb_env", "cfg", self.cfg)
         self.marb_tb_env = cl_marb_tb_env("marb_tb_env", self)
 
+        self.assert_check = cl_interface_assert_check(
+            clk_signal=self.dut.clk,
+            rst_signal=self.dut.rst,
+            ack0_signal = self.dut.c0_ack,
+            ack1_signal = self.dut.c1_ack,
+            ack2_signal = self.dut.c2_ack
+        )
+            
+
         self.logger.info("End build_phase() -> MARB base test")
 
     def connect_phase(self):
@@ -177,6 +186,7 @@ class cl_marb_tb_base_test(uvm_test):
         await super().run_phase()
 
         await self.trigger_reset()
+        cocotb.start_soon(self.assert_check.check_assertions())
 
         # Instantiate register sequences for enabling and configuring the Memory Arbiter
 

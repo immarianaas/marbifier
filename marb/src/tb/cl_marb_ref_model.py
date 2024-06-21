@@ -114,21 +114,12 @@ class marb_ref_model(uvm_component):
         print("\n[get_item_to_handle_dynamic]")  
         print(f"c1={globalvars.ORDER[0]}, c2={globalvars.ORDER[1]}, c3={globalvars.ORDER[2]} ")
 
-        highest = max(globalvars.ORDER)
-        lowest  = min(globalvars.ORDER)
-        for i in range(len(globalvars.ORDER)):
-            if globalvars.ORDER[i] != highest and globalvars.ORDER[i] != lowest:
-                middle = globalvars.ORDER[i]
-
-        for i in range(len(globalvars.ORDER)):
-            if globalvars.ORDER[i] == highest:
-                highest = i
-            if globalvars.ORDER[i] == middle:
-                middle = i
-            if globalvars.ORDER[i] == lowest:
-                lowest = i
+        max_index = globalvars.ORDER.index(max(globalvars.ORDER)) 
+        min_index  = globalvars.ORDER.index(min(globalvars.ORDER)) 
+        middle_val = sum(globalvars.ORDER) - globalvars.ORDER[max_index] - globalvars.ORDER[min_index]
+        middle_index = globalvars.ORDER.index(middle_val)
      
-        return highest, middle, lowest     
+        return max_index, middle_index, min_index     
 
 
     async def get_item_to_handle(self):
