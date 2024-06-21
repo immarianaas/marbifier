@@ -6,10 +6,11 @@ import cocotb
 from ref_model.seq_item import SeqItem, SeqItemOut
 
 from cocotb.triggers import NextTimeStep, Timer, ClockCycles
+import globalvars
+
+
 
 # Reference model for the marb design
-
-
 class marb_ref_model(uvm_component):
 
     def __init__(self, name="marb_ref_model", parent=None):
@@ -23,11 +24,9 @@ class marb_ref_model(uvm_component):
 
         self.items = None
 
-        self.is_static = True
-        self.order = (0, 0, 0)
+       
         self.DATA_WIDTH = 1  # i dont know
         self.ADDR_WIDTH = 1
-
     def build_phase(self):
         super().build_phase()
 
@@ -41,12 +40,7 @@ class marb_ref_model(uvm_component):
         self.analysis_port = uvm_analysis_port(
             f"{self.get_name()}_analysis_port", self)
 
-        self.items = Queue(maxsize=-1)
-
-        self.c0_items = Queue(maxsize=-1)
-        self.c1_items = Queue(maxsize=-1)
-        self.c2_items = Queue(maxsize=-1)
-
+        self.items = [Queue(maxsize=-1), Queue(maxsize=-1), Queue(maxsize=-1)]
     async def run_phase(self):
 
         await super().run_phase()
@@ -55,9 +49,10 @@ class marb_ref_model(uvm_component):
 
     async def sample_item(self):
         print("\n[sample_item]\n")
-
-        if not self.is_static:
-            return
+            
+        if not globalvars.STATIC:
+            return await self.sample_item_dynamic()
+            
 
         while True:
             await ClockCycles(cocotb.top.clk, 1)
@@ -79,20 +74,76 @@ class marb_ref_model(uvm_component):
             """
             self.analysis_port.write(output_item)
 
+    async def sample_item_dynamic(self):
+        print("\n[sample_item_dynamic]\n")
+
+        while True:
+            await ClockCycles(cocotb.top.clk, 1)
+
+            if globalvars.ORDER is None:
+                continue
+
+            item_to_handle = await self.get_item_to_handle_dynamic()
+            if item_to_handle is None:
+                continue
+
+            print("\nitem_to:handle\n")
+
+            output_item = item_to_handle.clone()
+            output_item.data = output_item.data if output_item.access == 1 else 42
+
+            self.analysis_port.write(output_item)
+
+
+        
+    async def get_item_to_handle_dynamic(self):
+        print("\n[get_item_to_handle_dynamic]\n")
+
+        highest, middle, lowest = self.get_order()
+        print(f"highest={highest}, middle={middle}, lowest={lowest}")
+        if not self.items[lowest].empty():
+            return await self.items[lowest].get()
+        
+        if not self.items[middle].empty():
+            return await self.items[middle].get()
+        
+        if not self.items[highest].empty():
+            return await self.items[highest].get()
+        
+    def get_order(self):
+        print("\n[get_item_to_handle_dynamic]")  
+        print(f"c1={globalvars.ORDER[0]}, c2={globalvars.ORDER[1]}, c3={globalvars.ORDER[2]} ")
+
+        highest = max(globalvars.ORDER)
+        lowest  = min(globalvars.ORDER)
+        for i in range(len(globalvars.ORDER)):
+            if globalvars.ORDER[i] != highest and globalvars.ORDER[i] != lowest:
+                middle = globalvars.ORDER[i]
+
+        for i in range(len(globalvars.ORDER)):
+            if globalvars.ORDER[i] == highest:
+                highest = i
+            if globalvars.ORDER[i] == middle:
+                middle = i
+            if globalvars.ORDER[i] == lowest:
+                lowest = i
+     
+        return highest, middle, lowest     
+
+
     async def get_item_to_handle(self):
-        if not self.c0_items.empty():
-            return await self.c0_items.get()
+        if not self.items[0].empty():
+            return await self.items[0].get()
 
-        if not self.c1_items.empty():
-            return await self.c1_items.get()
+        if not self.items[1].empty():
+            return await self.items[1].get()
 
-        if not self.c2_items.empty():
-            return await self.c2_items.get()
+        if not self.items[2].empty():
+            return await self.items[2].get()
 
         return None
 
     async def static_fifos2queue(self):
-
         async def add_item_to_queue(fifo, queue):
             while True:
                 fifo_item = await fifo.get()
@@ -109,10 +160,10 @@ class marb_ref_model(uvm_component):
                 """
                 await queue.put(fifo_item)
 
-        # not quite correct
+        # not quite correct, it is quite correct ;D
         cocotb.start_soon(add_item_to_queue(
-            self.uvc_sdt_c0_fifo, self.c0_items))
+            self.uvc_sdt_c0_fifo, self.items[0]))
         cocotb.start_soon(add_item_to_queue(
-            self.uvc_sdt_c1_fifo, self.c1_items))
+            self.uvc_sdt_c1_fifo, self.items[1]))
         cocotb.start_soon(add_item_to_queue(
-            self.uvc_sdt_c2_fifo, self.c2_items))
+            self.uvc_sdt_c2_fifo, self.items[2]))

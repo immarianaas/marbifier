@@ -6,6 +6,7 @@ from cl_marb_tb_base_seq import cl_marb_tb_base_seq
 from vseqs.cl_reg_dynamic_seq import cl_reg_dynamic_seq
 from vseqs.cl_marb_dynamic_seq import cl_marb_dynamic_seq
 from uvc.sdt.src import *
+import globalvars
 
 
 @pyuvm.test(timeout_time=10000, timeout_unit='ns')
@@ -16,7 +17,7 @@ class cl_marb_dynamic_test(cl_marb_tb_base_test):
         super().__init__(name, parent)
 
     def start_of_simulation_phase(self):
-
+        globalvars.STATIC = False
         super().start_of_simulation_phase()
         uvm_factory().set_type_override_by_type(cl_marb_tb_base_seq, cl_marb_dynamic_seq)
 
