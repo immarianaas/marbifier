@@ -33,7 +33,7 @@ class cl_reg_setup_dynamic_seq(cl_reg_base_seq):
         # Write the value 0 into the ctrl register
 
         status = await self.sequencer.reg_model.ctrl_reg.write(0x3)
-        # Set the STATIC variable from the file cl_marb_ref_model.py to True
+        # Set the STATIC variable from the file cl_marb_ref_model.py to False
         globalvars.STATIC = False
         
 
