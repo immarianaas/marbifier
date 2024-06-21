@@ -30,6 +30,10 @@ class cl_sdt_seq_item(uvm_sequence_item, object):
     #######################
 
     @vsc.constraint
+    def c_addr_not_zero(self):
+        self.addr > 0
+
+    @vsc.constraint
     def c_default_consumer_delay_cycles(self):
         """Default consumer delay cycle of 1"""
         vsc.soft(self.consumer_delay_rdwr1_ack1 == 0)

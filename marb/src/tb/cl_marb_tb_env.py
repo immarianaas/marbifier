@@ -80,13 +80,13 @@ class cl_marb_tb_env(uvm_env):
         # Set register model in virtual sequencer
         self.virtual_sequencer.reg_model = self.reg_model
 
-        #Creating the reference model and setting constants
+        # Creating the reference model and setting constants
         self.ref_model_handler = marb_ref_model.create(
             "cl_ref_model_handler", self)
         self.ref_model_handler.DATA_WIDTH = self.cfg.DATA_WIDTH
         self.ref_model_handler.DATA_WIDTH = self.cfg.DATA_WIDTH
 
-        #Creating the scoreboard
+        # Creating the scoreboard
         self.scoreboard = cl_marb_scoreboard.create(
             name="cl_marb_scoreboard", parent=self)
         self.scoreboard.cdb_set("cfg", self.cfg, "")
@@ -109,20 +109,19 @@ class cl_marb_tb_env(uvm_env):
         self.virtual_sequencer.sdt_m_sequencer = self.sdt_agent_m.sequencer
         self.virtual_sequencer.apb_sequencer = self.apb_agent.sequencer
 
-
         self.ref_model_handler.analysis_port.connect(
             self.scoreboard.ref_model_fifo.analysis_export)
 
         self.sdt_agent_m.ap.connect(
             self.scoreboard.uvc_sdt_m_consumer_fifo.analysis_export)
-        
-        self.sdt_agent_c0.ap.connect(
+
+        self.sdt_agent_c0.request_ap.connect(
             self.ref_model_handler.uvc_sdt_c0_fifo.analysis_export)
-        self.sdt_agent_c1.ap.connect(
+        self.sdt_agent_c1.request_ap.connect(
             self.ref_model_handler.uvc_sdt_c1_fifo.analysis_export)
-        self.sdt_agent_c2.ap.connect(
+        self.sdt_agent_c2.request_ap.connect(
             self.ref_model_handler.uvc_sdt_c2_fifo.analysis_export)
-        
+
         self.apb_agent.ap.connect(
             self.ref_model_handler.uvc_apb_fifo.analysis_export)
 

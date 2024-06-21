@@ -55,6 +55,7 @@ class cl_marb_scoreboard(uvm_scoreboard):
 
             if uvc_val == ref_val:
                 self.successes += 1
+                self.logger.warning(f"Correct! Reference= {ref_val}")
             else:
                 self.failures += 1
                 self.logger.error(
@@ -70,5 +71,9 @@ class cl_marb_scoreboard(uvm_scoreboard):
 
     def check_phase(self):
         super().check_phase()
-        self.logger.info(
-            f"Successes: {self.successes} | Failures: {self.failures}")
+        self.logger.info("*"*40)
+        self.logger.info(f'**{"SUCCESSES":>16s} |{"FAILURES":>17s} **')
+        self.logger.info(f'**{self.successes:>16d} |{self.failures:>17d} **')
+        self.logger.info("*"*40)
+        # self.logger.info(
+        #     f"Successes: {self.successes} | Failures: {self.failures}")

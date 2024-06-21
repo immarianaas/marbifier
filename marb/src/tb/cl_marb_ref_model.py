@@ -3,11 +3,11 @@ from pyuvm import uvm_component, uvm_tlm_analysis_fifo, uvm_analysis_port
 import time
 from cocotb.queue import Queue
 import cocotb
+
 from ref_model.seq_item import SeqItem, SeqItemOut
 
-from cocotb.triggers import NextTimeStep, Timer, ClockCycles
+from cocotb.triggers import NextTimeStep, Timer, ClockCycles, RisingEdge, FallingEdge
 import globalvars
-
 
 
 # Reference model for the marb design
@@ -24,9 +24,9 @@ class marb_ref_model(uvm_component):
 
         self.items = None
 
-       
         self.DATA_WIDTH = 1  # i dont know
         self.ADDR_WIDTH = 1
+
     def build_phase(self):
         super().build_phase()
 
@@ -41,6 +41,7 @@ class marb_ref_model(uvm_component):
             f"{self.get_name()}_analysis_port", self)
 
         self.items = [Queue(maxsize=-1), Queue(maxsize=-1), Queue(maxsize=-1)]
+
     async def run_phase(self):
 
         await super().run_phase()
@@ -49,30 +50,37 @@ class marb_ref_model(uvm_component):
 
     async def sample_item(self):
         print("\n[sample_item]\n")
-            
+
         if not globalvars.STATIC:
             return await self.sample_item_dynamic()
-            
 
         while True:
-            await ClockCycles(cocotb.top.clk, 1)
+            if self.all_queues_empty():
+                await ClockCycles(cocotb.top.clk, 1)
 
-            item_to_handle = await self.get_item_to_handle()
+                # await RisingEdge(cocotb.top.clk)
+                continue
+            #  -  await RisingEdge(cocotb.top.clk)
+
+            # while self.all_queues_empty():
+            #     await ClockCycles(cocotb.top.clk, 1)
+            # await RisingEdge(cocotb.top.clk)
+
+            item_to_handle = self.get_item_to_handle_no_wait()
             if item_to_handle is None:
                 continue
 
-            print("\nitem_to:handle\n")
+            print(f"\nitem_to:handle {item_to_handle}\n")
 
             output_item = item_to_handle.clone()
             output_item.data = output_item.data if output_item.access == 1 else 42
 
-            """
-            output_item = SeqItemOut(
-                DATA_WIDTH=self.DATA_WIDTH, ADDR_WIDTH=self.ADDR_WIDTH)
-            output_item.set_data(base=item_to_handle, rd_data=42,
-                                ack=0)  # read data we dont know ?
-            """
             self.analysis_port.write(output_item)
+
+            await FallingEdge(cocotb.top.m_ack)
+            await RisingEdge(cocotb.top.clk)
+
+
 
     async def sample_item_dynamic(self):
         print("\n[sample_item_dynamic]\n")
@@ -94,8 +102,6 @@ class marb_ref_model(uvm_component):
 
             self.analysis_port.write(output_item)
 
-
-        
     async def get_item_to_handle_dynamic(self):
         print("\n[get_item_to_handle_dynamic]\n")
 
@@ -103,19 +109,21 @@ class marb_ref_model(uvm_component):
         print(f"highest={highest}, middle={middle}, lowest={lowest}")
         if not self.items[lowest].empty():
             return await self.items[lowest].get()
-        
+
         if not self.items[middle].empty():
             return await self.items[middle].get()
-        
+
         if not self.items[highest].empty():
             return await self.items[highest].get()
-        
+
     def get_order(self):
-        print("\n[get_item_to_handle_dynamic]")  
-        print(f"c1={globalvars.ORDER[0]}, c2={globalvars.ORDER[1]}, c3={globalvars.ORDER[2]} ")
+        print("\n[get_item_to_handle_dynamic]")
+        print(
+            f"c1={globalvars.ORDER[0]}, c2={globalvars.ORDER[1]}, c3={globalvars.ORDER[2]} ")
 
         highest = max(globalvars.ORDER)
-        lowest  = min(globalvars.ORDER)
+        lowest = min(globalvars.ORDER)
+
         for i in range(len(globalvars.ORDER)):
             if globalvars.ORDER[i] != highest and globalvars.ORDER[i] != lowest:
                 middle = globalvars.ORDER[i]
@@ -127,11 +135,20 @@ class marb_ref_model(uvm_component):
                 middle = i
             if globalvars.ORDER[i] == lowest:
                 lowest = i
-     
-        return highest, middle, lowest     
 
+        return highest, middle, lowest
 
     async def get_item_to_handle(self):
+        """
+        if (self.items[0].qsize() != 0 or self.items[1].qsize() != 0 or self.items[2].qsize() != 0):
+            print(f"----- start -----")
+
+            print(f"self.items[0].qsize()? {self.items[0].qsize()}")
+            print(f"self.items[1].qsize()? {self.items[1].qsize()}")
+            print(f"self.items[2].qsize()? {self.items[2].qsize()}")
+
+            print(f"----- end -----")
+        """
         if not self.items[0].empty():
             return await self.items[0].get()
 
@@ -142,6 +159,36 @@ class marb_ref_model(uvm_component):
             return await self.items[2].get()
 
         return None
+
+    def get_item_to_handle_no_wait(self):
+        if not self.all_queues_empty():
+
+            self.logger.warning("----- start -----")
+
+            self.logger.warning(
+                f"self.items[0].qsize()? {self.items[0].qsize()}")
+            self.logger.warning(
+                f"self.items[1].qsize()? {self.items[1].qsize()}")
+            self.logger.warning(
+                f"self.items[2].qsize()? {self.items[2].qsize()}")
+
+            self.logger.warning(f"----- end -----")
+        if not self.items[0].empty():
+            return self.items[0].get_nowait()
+
+        if not self.items[1].empty():
+            return self.items[1].get_nowait()
+
+        if not self.items[2].empty():
+            return self.items[2].get_nowait()
+
+        return None
+
+    def all_queues_empty(self) -> bool:
+        res = self.items[0].empty() and self.items[1].empty(
+        ) and self.items[2].empty()
+        # print(res)
+        return res
 
     async def static_fifos2queue(self):
         async def add_item_to_queue(fifo, queue):
