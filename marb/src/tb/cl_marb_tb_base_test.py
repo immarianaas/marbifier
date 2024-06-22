@@ -11,6 +11,7 @@ import vsc
 
 from uvc.sdt.src import *
 
+from uvc.sdt.src.cl_std_if_assertions import cl_sdt_interface_assert_check
 from cl_marb_tb_config import cl_marb_tb_config
 from uvc.apb.src.cl_apb_interface import cl_apb_interface
 from cl_marb_tb_env import cl_marb_tb_env
@@ -21,6 +22,7 @@ from uvc.sdt.src.sdt_common import SequenceItemOverride
 
 from reg_model.seq_lib.cl_reg_setup_seq import cl_reg_setup_seq
 from cl_marb_assertions import cl_interface_assert_check
+
 
 @pyuvm.test()
 class cl_marb_tb_base_test(uvm_test):
@@ -44,6 +46,13 @@ class cl_marb_tb_base_test(uvm_test):
 
         # TB environment handler
         self.marb_tb_env = None
+
+        # Assertions
+        self.sdt_assert_check_c0 = None
+        self.sdt_assert_check_c1 = None
+        self.sdt_assert_check_c2 = None
+        self.sdt_assert_check_m = None
+        self.if_assert_check = None
 
         uvm_report_object.set_default_logging_level("INFO")
 
@@ -123,14 +132,57 @@ class cl_marb_tb_base_test(uvm_test):
         ConfigDB().set(self, "marb_tb_env", "cfg", self.cfg)
         self.marb_tb_env = cl_marb_tb_env("marb_tb_env", self)
 
-        self.assert_check = cl_interface_assert_check(
+        self.sdt_assert_check_c0 = cl_sdt_interface_assert_check(
             clk_signal=self.dut.clk,
             rst_signal=self.dut.rst,
-            ack0_signal = self.dut.c0_ack,
-            ack1_signal = self.dut.c1_ack,
-            ack2_signal = self.dut.c2_ack
+            rd=self.dut.c0_rd,
+            wr=self.dut.c0_wr,
+            addr=self.dut.c0_addr,
+            rd_data=self.dut.c0_rd_data,
+            wr_data=self.dut.c0_wr_data,
+            ack=self.dut.c0_ack
         )
-            
+
+        self.sdt_assert_check_c1 = cl_sdt_interface_assert_check(
+            clk_signal=self.dut.clk,
+            rst_signal=self.dut.rst,
+            rd=self.dut.c1_rd,
+            wr=self.dut.c1_wr,
+            addr=self.dut.c1_addr,
+            rd_data=self.dut.c1_rd_data,
+            wr_data=self.dut.c1_wr_data,
+            ack=self.dut.c1_ack
+        )
+
+        self.sdt_assert_check_c2 = cl_sdt_interface_assert_check(
+            clk_signal=self.dut.clk,
+            rst_signal=self.dut.rst,
+            rd=self.dut.c2_rd,
+            wr=self.dut.c2_wr,
+            addr=self.dut.c2_addr,
+            rd_data=self.dut.c2_rd_data,
+            wr_data=self.dut.c2_wr_data,
+            ack=self.dut.c2_ack
+        )
+
+        self.sdt_assert_check_m = cl_sdt_interface_assert_check(
+            clk_signal=self.dut.clk,
+            rst_signal=self.dut.rst,
+            rd=self.dut.m_rd,
+            wr=self.dut.m_wr,
+            addr=self.dut.m_addr,
+            rd_data=self.dut.m_rd_data,
+            wr_data=self.dut.m_wr_data,
+            ack=self.dut.m_ack
+        )
+
+        self.if_assert_check = cl_interface_assert_check(
+            clk_signal=self.dut.clk,
+            rst_signal=self.dut.rst,
+            ack0_signal=self.dut.c0_ack,
+            ack1_signal=self.dut.c1_ack,
+            ack2_signal=self.dut.c2_ack
+        )
 
         self.logger.info("End build_phase() -> MARB base test")
 
@@ -188,7 +240,11 @@ class cl_marb_tb_base_test(uvm_test):
         await super().run_phase()
 
         await self.trigger_reset()
-        cocotb.start_soon(self.assert_check.check_assertions())
+        cocotb.start_soon(self.sdt_assert_check_c0.check_assertions())
+        cocotb.start_soon(self.sdt_assert_check_c1.check_assertions())
+        cocotb.start_soon(self.sdt_assert_check_c2.check_assertions())
+        cocotb.start_soon(self.sdt_assert_check_m.check_assertions())
+        cocotb.start_soon(self.if_assert_check.check_assertions())
 
         # Instantiate register sequences for enabling and configuring the Memory Arbiter
 
@@ -220,6 +276,13 @@ class cl_marb_tb_base_test(uvm_test):
     def report_phase(self):
         self.logger.info("Start report_phase() -> MARB base test")
         super().report_phase()
+
+        # Report on the assertions
+        assert self.sdt_assert_check_c0.all_good, "SDT check for C0 failed!"
+        assert self.sdt_assert_check_c1.all_good, "SDT check for C1 failed!"
+        assert self.sdt_assert_check_c2.all_good, "SDT check for C2 failed!"
+        assert self.sdt_assert_check_m.all_good, "SDT check for the memory failed!"
+        assert self.if_assert_check.all_good, "Mem. arbiter ACK check failed!"
 
         # Creating coverage report with PyVSC in txt format
         try:

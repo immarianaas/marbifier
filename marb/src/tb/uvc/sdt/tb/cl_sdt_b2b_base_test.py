@@ -185,7 +185,8 @@ class cl_sdt_b2b_base_test(uvm_test):
 
     def report_phase(self):
         super().report_phase()
-        assert self.data_check_passed, "data check failed"
+        assert self.data_check_passed, "data check failed!"
+        assert self.assert_check.all_good, "SDT check failed!"
 
         print(f"==== COVERAGE FOR TEST \"{type(self).__name__}\" ====")
         vsc.report_coverage(details=True)

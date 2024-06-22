@@ -35,6 +35,7 @@ class cl_sdt_interface_assert_check():
 
     async def check_assertions(self):
         cocotb.start_soon(self.cannot_read_write())
+        cocotb.start_soon(self.addr_not_zero())
 
     async def cannot_read_write(self):
         """Cannot read and write at the same time."""

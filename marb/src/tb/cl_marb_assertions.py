@@ -17,7 +17,8 @@ class cl_interface_assert_check():
         self.ack0 = ack0_signal
         self.ack1 = ack1_signal
         self.ack2 = ack2_signal
-
+        self.all_good = True
+        
     async def check_assertions(self):
         cocotb.start_soon(self.only_one_ack())
 
