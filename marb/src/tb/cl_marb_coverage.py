@@ -166,24 +166,29 @@ class cl_marb_coverage(uvm_subscriber):
             self.burst_count = 1
             self.starting_addr = addr
 
+
         if self.past_operation is None:
-            return reset_counters()
+            reset_counters()
 
         rd_past_op = self.past_operation[0]
         addr_past_op = self.past_operation[1]
 
-        # if rd:
-        #     if rd_past_op == rd and addr == addr_past_op + 1:
-        #     self.rd_burst.sample()
-
-        if rd_past_op != rd or addr != addr_past_op + 1:
-            #self.burst.sample(self.burst_count, self.starting_addr)
+        if rd_past_op != rd or addr != (addr_past_op + self.burst_count):
+            # self.burst.sample(self.burst_count, self.starting_addr)
             reset_counters()
         else:
             # continuing the burst!
             self.burst_count += 1
 
-        self.past_operation = (rd, addr)
+
+        if rd_past_op:  # if it was a READ
+            self.rd_burst.sample(
+                self.burst_count, addr_past_op)  # length, addr
+        else:  # if it was a WRITE
+            self.wr_burst.sample(
+                self.burst_count, addr_past_op)  # length, addr
+
+        # self.past_operation = (rd, addr)
 
     # def write(self, rd: int, wr: int, addr: int):
     #     self.covergroup.sample(rd, wr, addr)

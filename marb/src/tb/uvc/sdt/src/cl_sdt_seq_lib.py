@@ -153,3 +153,46 @@ class cl_sdt_count_seq(cl_sdt_base_seq):
 
             # TODO: should be commented?
             # await self.get_response(self.s_item)
+
+
+@vsc.randobj
+class cl_sdt_burst_seq(cl_sdt_base_seq):
+    """Sequence generating <count> item in a burst of <count_length> elements"""
+
+    def __init__(self, name="sdt_burst_seq"):
+        super().__init__(name)
+        self.max_burst_length = vsc.rand_uint32_t()
+        self.count = vsc.rand_uint32_t()
+
+    @vsc.constraint
+    def c_count(self):
+        self.count in vsc.rangelist(vsc.rng(0, 5))
+        self.max_burst_length in vsc.rangelist(vsc.rng(0, 256))
+
+    async def body(self):
+        print("BURST COUNT", self.count)
+        # Create transaction
+
+        for _ in range(self.count):
+            seq_item_name = self.sequencer.get_full_name() + ".sdt_count_seq_item"
+            self.s_item = cl_sdt_seq_item.create(seq_item_name)
+            self.s_item.randomize()
+
+            for _ in range(self.max_burst_length):
+
+                if self.s_item.addr + 1 >= 2**self.sequencer.cfg.ADDR_WIDTH:
+                    break
+
+                if self.sequencer.cfg.driver == DriverType.PRODUCER:
+                    await super().body()
+
+                self.s_item.addr += 1
+                await self.start_item(self.s_item)
+
+                self.sequencer.logger.debug(f"Sending item: {self.s_item}")
+
+                # Send transaction to driver
+                await self.finish_item(self.s_item)
+
+                # TODO: should be commented?
+                # await self.get_response(self.s_item)
