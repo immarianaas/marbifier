@@ -92,8 +92,12 @@ class cl_marb_coverage(uvm_subscriber):
 
         # (read, addr)
         self.past_operation = None
+        self.past_read = None
         self.burst_count = 0
         self.starting_addr = None
+        self.read_followed_by_write = None
+        self.write_followed_by_read = None
+        self.queue = None
 
     def build_phase(self):
         super().build_phase()
@@ -106,6 +110,10 @@ class cl_marb_coverage(uvm_subscriber):
 
         self.read_followed_by_write = covergroup_write_followed_by_read(
             name=f"{self.get_name()}.cvg_read_followed_by_write",
+            addr_width=8
+        )
+        self.write_followed_by_read = covergroup_write_followed_by_read(
+            name=f"{self.get_name()}.cvg_write_followed_by_read",
             addr_width=8
         )
 
@@ -127,7 +135,34 @@ class cl_marb_coverage(uvm_subscriber):
 
         self.covergroup.sample(rd, wr, addr)
         self.handle_read_followed_by_write(rd, wr, addr)
+        self.handle_write_followed_by_read(rd, wr, addr)
         self.handle_bursts(rd, wr, addr)
+
+    def handle_write_followed_by_read(self, rd, wr, addr):
+        # 1. receive a write (save the addr)
+        # 2. if a read to the same addr - positive
+        # 3. if a read to the diff addr - negative
+        # 4. we can have write followed by write  (nested stuff)
+        #
+
+        assert wr != 1 or rd != 1
+        
+        def reset_counters():
+            self.past_read = addr
+            self.starting_addr = addr
+
+
+        if self.past_read is None:
+            reset_counters()
+        
+        if rd:  # if it was a READ
+            if addr==self.past_read:
+                self.write_followed_by_read.sample(True, self.past_read)
+            else:
+                self.write_followed_by_read.sample(False, self.past_read)
+        else:  # if it was a WRITE
+            self.past_read = addr
+
 
     def handle_read_followed_by_write(self, rd, wr, addr):
 
