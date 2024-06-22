@@ -7,8 +7,8 @@ import vsc
 @vsc.covergroup
 class covergroup_memory(object):
     def __init__(self, name, data_width, addr_width) -> None:
-        self.DATA_WIDTH = 8  # data_width
-        self.ADDR_WIDTH = 8  # addr_width
+        self.DATA_WIDTH = data_width
+        self.ADDR_WIDTH = addr_width
 
         self.options.per_instance = True
         self.options.name = name
@@ -29,10 +29,7 @@ class covergroup_memory(object):
 
         self.addr_point = vsc.coverpoint(self.addr,
                                          bins={
-                                             "zero": vsc.bin(0),
-                                             # TODO: check the actual size
-                                             "valid1": vsc.bin([1, (2**self.ADDR_WIDTH)/2]),
-                                             "valid2": vsc.bin([(2**self.ADDR_WIDTH)/2 + 1, (2**self.ADDR_WIDTH)-1])
+                                             "valid": vsc.bin_array([4], [1, addr_width**2-1])
                                          })
 
 
@@ -52,10 +49,7 @@ class covergroup_write_followed_by_read(object):
 
         self.addr_point = vsc.coverpoint(self.addr,
                                          bins={
-                                             "zero": vsc.bin(0),
-                                             # TODO: check the actual size
-                                             "valid1": vsc.bin([1, (2**addr_width)/2]),
-                                             "valid2": vsc.bin([(2**addr_width)/2 + 1, (2**addr_width)-1])
+                                             "valid": vsc.bin_array([4], [1, addr_width**2-1])
                                          })
 
         self.result_addr_cross = vsc.cross(
@@ -72,21 +66,18 @@ class covergroup_burst(object):
 
         self.length_point = vsc.coverpoint(self.length,
                                            bins={
-                                               "zero": vsc.bin(0),
                                                "one": vsc.bin(1),
-                                               "b1": vsc.bin_array([4], [2, addr_width**2-1])
+                                               "one_plus": vsc.bin_array([4], [2, addr_width**2-1])
                                            })
 
         self.addr_point = vsc.coverpoint(self.addr,
                                          bins={
-                                             "zero": vsc.bin(0),
-                                             # TODO: check the actual size
-                                             "valid1": vsc.bin([1, (2**addr_width)/2]),
-                                             "valid2": vsc.bin([(2**addr_width)/2 + 1, (2**addr_width)-1])
+                                             "valid": vsc.bin_array([4], [1, addr_width**2-1])
                                          })
 
         self.len_addr_cross = vsc.cross(
-            [self.length_point, self.addr_point])
+            [self.length_point, self.addr_point]
+        )
 
 
 class cl_marb_coverage(uvm_subscriber):
@@ -108,9 +99,10 @@ class cl_marb_coverage(uvm_subscriber):
         super().build_phase()
 
         self.cfg = self.cdb_get("cfg", "")
-        self.covergroup = covergroup_memory(name=f"{self.get_name()}.cvg",  # TODO: FIXME
-                                            data_width=8,  # self.cfg.DATA_WIDTH,
-                                            addr_width=8)  # self.cfg.ADDR_WIDTH)
+
+        self.covergroup = covergroup_memory(name=f"{self.get_name()}.cvg_general",
+                                            data_width=self.cfg.DATA_WIDTH,
+                                            addr_width=self.cfg.ADDR_WIDTH)
 
         self.read_followed_by_write = covergroup_write_followed_by_read(
             name=f"{self.get_name()}.cvg_read_followed_by_write",
@@ -119,12 +111,12 @@ class cl_marb_coverage(uvm_subscriber):
 
         self.rd_burst = covergroup_burst(
             name=f"{self.get_name()}.cvg_read_burst",
-            addr_width=8
+            addr_width=self.cfg.ADDR_WIDTH
         )
 
         self.wr_burst = covergroup_burst(
             name=f"{self.get_name()}.cvg_write_burst",
-            addr_width=8
+            addr_width=self.cfg.ADDR_WIDTH
         )
 
     def write(self, item):
@@ -160,44 +152,33 @@ class cl_marb_coverage(uvm_subscriber):
     def handle_bursts(self, rd, wr, addr):
         # burst is when read or write consecutive addresses
         # but always the same kind of operation
+        assert rd != wr
 
         def reset_counters():
             self.past_operation = (rd, addr)
             self.burst_count = 1
-            self.starting_addr = addr
-
+            self.sample_burst(rd, self.burst_count, addr)
 
         if self.past_operation is None:
-            reset_counters()
+            return reset_counters()
 
-        rd_past_op = self.past_operation[0]
-        addr_past_op = self.past_operation[1]
+        rd_past_op, addr_past_op = self.past_operation
 
         if rd_past_op != rd or addr != (addr_past_op + self.burst_count):
-            # self.burst.sample(self.burst_count, self.starting_addr)
-            reset_counters()
-        else:
-            # continuing the burst!
-            self.burst_count += 1
+            return reset_counters()
 
+        # continuing the burst!
+        self.burst_count += 1
 
-        if rd_past_op:  # if it was a READ
+        self.sample_burst(rd_past_op, self.burst_count, addr_past_op)
+
+    def sample_burst(self, is_rd, count, initial_addr):
+        if is_rd:  # if it was a READ
             self.rd_burst.sample(
-                self.burst_count, addr_past_op)  # length, addr
+                count, initial_addr)  # length, addr
         else:  # if it was a WRITE
             self.wr_burst.sample(
-                self.burst_count, addr_past_op)  # length, addr
-
-        # self.past_operation = (rd, addr)
-
-    # def write(self, rd: int, wr: int, addr: int):
-    #     self.covergroup.sample(rd, wr, addr)
-
+                count, initial_addr)  # length, addr
 
 # QUESTIONS:
-# 2. Must be connected to the monitor of the MIF;
-#   . connected to the *monitor*? did I do this correctly?
-# 3. read followed by a write to the same address
-#   . we get some False, is this correct?
-# 4. what is a burst?
 # 5. "Note that as the address grows the lengths decrease", how so?

@@ -73,7 +73,7 @@ class marb_ref_model(uvm_component):
         highest, middle, lowest = (
             0, 1, 2) if globalvars.STATIC else self.get_order_dynamic()
 
-        self.logger.warning(f"order= ({highest}, {middle}, {lowest})")
+        # self.logger.warning(f"order= ({highest}, {middle}, {lowest})")
 
         if not self.items[highest].empty():
             return await self.items[highest].get()

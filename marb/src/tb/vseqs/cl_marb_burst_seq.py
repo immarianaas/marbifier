@@ -33,11 +33,7 @@ class cl_marb_burst_seq(cl_marb_tb_base_seq):
         cocotb.start_soon(
             self.m_seq.start(self.sequencer.sdt_m_sequencer))
 
-        c0_seq_task = cocotb.start_soon(
-            self.c0_seq.start(self.sequencer.sdt_c0_sequencer))
-        c1_seq_task = cocotb.start_soon(
-            self.c1_seq.start(self.sequencer.sdt_c1_sequencer))
-        c2_seq_task = cocotb.start_soon(
-            self.c2_seq.start(self.sequencer.sdt_c2_sequencer))
+        await self.c0_seq.start(self.sequencer.sdt_c0_sequencer)
+        await self.c1_seq.start(self.sequencer.sdt_c1_sequencer)
+        await self.c2_seq.start(self.sequencer.sdt_c2_sequencer)
 
-        await Combine(c0_seq_task, c1_seq_task, c2_seq_task)

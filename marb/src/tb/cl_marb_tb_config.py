@@ -20,13 +20,13 @@ class cl_marb_tb_config(uvm_object):
 
     def build_phase(self):
         self.sdt_cfg_c0.DATA_WIDTH = self.DATA_WIDTH
-        self.sdt_cfg_c0.DATA_WIDTH = self.DATA_WIDTH
+        self.sdt_cfg_c0.ADDR_WIDTH = self.ADDR_WIDTH
 
         self.sdt_cfg_c1.DATA_WIDTH = self.DATA_WIDTH
-        self.sdt_cfg_c1.DATA_WIDTH = self.DATA_WIDTH
+        self.sdt_cfg_c1.ADDR_WIDTH = self.ADDR_WIDTH
 
         self.sdt_cfg_c2.DATA_WIDTH = self.DATA_WIDTH
-        self.sdt_cfg_c2.DATA_WIDTH = self.DATA_WIDTH
+        self.sdt_cfg_c2.ADDR_WIDTH = self.ADDR_WIDTH
 
         self.sdt_cfg_m.DATA_WIDTH = self.DATA_WIDTH
-        self.sdt_cfg_m.DATA_WIDTH = self.DATA_WIDTH
+        self.sdt_cfg_m.ADDR_WIDTH = self.ADDR_WIDTH

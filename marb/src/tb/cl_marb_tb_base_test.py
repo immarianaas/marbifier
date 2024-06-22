@@ -56,6 +56,8 @@ class cl_marb_tb_base_test(uvm_test):
 
         # Create configuration object
         self.cfg = cl_marb_tb_config("cfg")
+        self.cfg.ADDR_WIDTH = self.dut.ADDR_WIDTH.value
+        self.cfg.DATA_WIDTH = self.dut.DATA_WIDTH.value
 
         # SDT agent c0 configuration
         self.cfg.sdt_cfg_c0.driver = DriverType.PRODUCER

@@ -36,7 +36,7 @@ class cl_marb_tb_env(uvm_env):
 
         self.ref_model_handler = None
         self.scoreboard = None
-        self.cl_marb_coverage = None
+        self.marb_cvg = None
 
     def build_phase(self):
         self.logger.info("Start build_phase() -> MARB env")
@@ -84,7 +84,7 @@ class cl_marb_tb_env(uvm_env):
         self.ref_model_handler = marb_ref_model.create(
             "cl_ref_model_handler", self)
         self.ref_model_handler.DATA_WIDTH = self.cfg.DATA_WIDTH
-        self.ref_model_handler.DATA_WIDTH = self.cfg.DATA_WIDTH
+        self.ref_model_handler.ADDR_WIDTH = self.cfg.ADDR_WIDTH
 
         # Creating the scoreboard
         self.scoreboard = cl_marb_scoreboard.create(

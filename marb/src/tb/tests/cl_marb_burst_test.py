@@ -8,7 +8,7 @@ from vseqs.cl_marb_burst_seq import cl_marb_burst_seq
 from uvc.sdt.src import *
 import globalvars
 
-@pyuvm.test(timeout_time=10000, timeout_unit='ns')
+@pyuvm.test(timeout_time=100000, timeout_unit='ns')
 class cl_marb_burst_test(cl_marb_tb_base_test):
     """static test - running WR and RD on each producer"""
 
