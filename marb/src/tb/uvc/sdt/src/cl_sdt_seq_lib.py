@@ -196,3 +196,67 @@ class cl_sdt_burst_seq(cl_sdt_base_seq):
 
                 # TODO: should be commented?
                 # await self.get_response(self.s_item)
+
+
+@vsc.randobj
+class cl_sdt_write_read_seq(cl_sdt_base_seq):
+    """Sequence generating <count> items such that after a write there's always a read for the same address"""
+
+    def __init__(self, name="sdt_burst_seq"):
+        super().__init__(name)
+        self.count = vsc.rand_uint32_t()
+
+    @vsc.constraint
+    def c_count(self):
+        self.count in vsc.rangelist(vsc.rng(0, 100))
+
+    async def body(self):
+        print("BURST COUNT", self.count)
+        # Create transaction
+        write_addresses = set()
+
+        # 1. send random values, save the addr to the writes
+        for _ in range(self.count):
+            seq_item_name = self.sequencer.get_full_name() + ".sdt_count_seq_item"
+            self.s_item = cl_sdt_seq_item.create(seq_item_name)
+            self.s_item.randomize()
+
+            # if is a write, save the addr
+            if self.s_item.access == 1:
+                write_addresses.add(self.s_item.addr)
+
+            # if it's a read and not in the list, skip
+            elif self.s_item.addr not in write_addresses:
+                continue
+
+            # if is a read and on the list, remove value from list
+            else:
+                write_addresses.remove(self.s_item.addr)
+
+
+            if self.sequencer.cfg.driver == DriverType.PRODUCER:
+                await super().body()
+
+            await self.start_item(self.s_item)
+
+            self.sequencer.logger.debug(f"Sending item: {self.s_item}")
+
+            # Send transaction to driver
+            await self.finish_item(self.s_item)
+
+        # 2. send the reads for the write addresses
+        for addr in write_addresses:
+            self.s_item = cl_sdt_seq_item.create(seq_item_name)
+            self.s_item.randomize()
+            self.s_item.access = 0  # read
+            self.s_item.addr = addr
+
+            if self.sequencer.cfg.driver == DriverType.PRODUCER:
+                await super().body()
+
+            await self.start_item(self.s_item)
+
+            self.sequencer.logger.debug(f"Sending item: {self.s_item}")
+
+            # Send transaction to driver
+            await self.finish_item(self.s_item)
