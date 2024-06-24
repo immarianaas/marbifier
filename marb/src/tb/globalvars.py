@@ -5,4 +5,3 @@
 
 ORDER = None
 STATIC = None
-ACKRAISED = None
