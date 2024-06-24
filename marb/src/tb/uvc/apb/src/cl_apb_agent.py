@@ -7,10 +7,9 @@
     - knobs to turn on features such as functional coverage, and other similar parameters."""
 
 from pyuvm import *
+from .cl_apb_driver import cl_apb_driver
 from .cl_apb_sequencer import cl_apb_sequencer
-from .cl_apb_driver import cl_apb_driver
 from .cl_apb_monitor import cl_apb_monitor
-from .cl_apb_driver import cl_apb_driver
 from .cl_apb_coverage import cl_apb_coverage
 from .apb_common import *
 from .cl_apb_seq_item import cl_apb_seq_item

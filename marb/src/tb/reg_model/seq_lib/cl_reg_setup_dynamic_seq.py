@@ -9,16 +9,18 @@ class cl_reg_setup_dynamic_seq(cl_reg_base_seq):
     
     def __init__(self, name="cl_reg_dynamic_seq"):
         super().__init__(name)
-        self.c0_priority = vsc.rand_uint8_t()
-        self.c1_priority = vsc.rand_uint8_t()
-        self.c2_priority = vsc.rand_uint8_t()
+        self.c0_priority = vsc.rand_bit_t(2)
+        self.c1_priority = vsc.rand_bit_t(2)
+        self.c2_priority = vsc.rand_bit_t(2)
         # Configuration
         self.cfg = None
     @vsc.constraint
     def c_priority(self):
+
         self.c0_priority != 0
         self.c1_priority != 0
         self.c2_priority != 0
+        vsc.unique(self.c0_priority, self.c1_priority, self.c2_priority)
 
 
     async def body(self):
@@ -30,9 +32,8 @@ class cl_reg_setup_dynamic_seq(cl_reg_base_seq):
         #  Setup up sequence
         ######################
 
-        # Write the value 0 into the ctrl register
-
-        status = await self.sequencer.reg_model.ctrl_reg.write(0x3)
+        # Write the value 0 into the ctrl register  
+        status = await self.sequencer.reg_model.ctrl_reg.write(0x00000002)
         # Set the STATIC variable from the file cl_marb_ref_model.py to False
         globalvars.STATIC = False
         
@@ -59,7 +60,9 @@ class cl_reg_setup_dynamic_seq(cl_reg_base_seq):
             self.sequencer.logger.error("STATUS is NOT_OK")
 
         # Write the value 0 into the DPRIO register
-        status = await self.sequencer.reg_model.dprio_reg.write(self.c2_priority << 16 | self.c1_priority << 8 | self.c0_priority)
+        test = 00000000 << 24|self.c2_priority << 16 | self.c1_priority << 8 | self.c0_priority
+        print("Testing priority write",test)
+        status = await self.sequencer.reg_model.dprio_reg.write(test)
         globalvars.ORDER = (self.c0_priority,self.c1_priority,self.c2_priority)
         # Check the status received
         if status == uvm_status_e.UVM_IS_OK:
@@ -68,6 +71,21 @@ class cl_reg_setup_dynamic_seq(cl_reg_base_seq):
                 f"to dprio_reg, status = {status}")
         else:
             self.sequencer.logger.error("STATUS is NOT_OK")
+
+        
+        # Write the value 0 into the ctrl register  
+        status = await self.sequencer.reg_model.ctrl_reg.write(0x00000003)
+        # Set the STATIC variable from the file cl_marb_ref_model.py to False
+        globalvars.STATIC = False
+        
+
+        # Check the status received
+        if status == uvm_status_e.UVM_IS_OK:
+            self.sequencer.logger.info(
+                f"SETUP SEQ: written {0} "
+                f"to dprio_reg, status = {status}")  # TODO change
+        else:
+            self.sequencer.logger.error("STATUS is NOT_OK") 
 
 
     def prettyCountPrint(self):
