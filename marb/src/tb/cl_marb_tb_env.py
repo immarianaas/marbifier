@@ -122,9 +122,6 @@ class cl_marb_tb_env(uvm_env):
         self.sdt_agent_c2.request_ap.connect(
             self.ref_model_handler.uvc_sdt_c2_fifo.analysis_export)
 
-        self.apb_agent.ap.connect(
-            self.ref_model_handler.uvc_apb_fifo.analysis_export)
-
         # connect memory monitor to coverage
         self.sdt_agent_m.monitor.ap.connect(self.marb_cvg.analysis_export)
 

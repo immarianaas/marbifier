@@ -42,7 +42,7 @@ class cl_reg_setup_dynamic_seq(cl_reg_base_seq):
         if status == uvm_status_e.UVM_IS_OK:
             self.sequencer.logger.info(
                 f"SETUP SEQ: written {0} "
-                f"to dprio_reg, status = {status}")  # TODO change
+                f"to ctrl reg, status = {status}")
         else:
             self.sequencer.logger.error("STATUS is NOT_OK") 
 

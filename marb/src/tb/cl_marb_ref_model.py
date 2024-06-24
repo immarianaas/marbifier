@@ -4,8 +4,6 @@ import time
 from cocotb.queue import Queue
 import cocotb
 
-from ref_model.seq_item import SeqItem, SeqItemOut
-
 from cocotb.triggers import NextTimeStep, Timer, ClockCycles, RisingEdge, FallingEdge
 import globalvars
 
@@ -20,7 +18,6 @@ class marb_ref_model(uvm_component):
         self.uvc_sdt_c1_fifo = None
         self.uvc_sdt_c2_fifo = None
         self.uvc_sdt_m_fifo = None
-        self.uvc_apb_fifo = None
 
         self.items = None  # list of 3 queues
 
@@ -34,8 +31,7 @@ class marb_ref_model(uvm_component):
         self.uvc_sdt_c1_fifo = uvm_tlm_analysis_fifo("uvc_sdt_c1_fifo", self)
         self.uvc_sdt_c2_fifo = uvm_tlm_analysis_fifo("uvc_sdt_c2_fifo", self)
         self.uvc_sdt_m_fifo = uvm_tlm_analysis_fifo("uvc_sdt_m_fifo", self)
-        self.uvc_apb_fifo = uvm_tlm_analysis_fifo(
-            "uvc_apb_fifo", self)  # TODO: what to do with this?
+
 
         self.analysis_port = uvm_analysis_port(
             f"{self.get_name()}_analysis_port", self)
