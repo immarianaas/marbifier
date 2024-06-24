@@ -68,9 +68,9 @@ class cl_marb_scoreboard(uvm_scoreboard):
         while True:
             await queue.put(await fifo.get())
 
-    def check_phase(self):
-        super().check_phase()
+    def report_phase(self):
+        super().report_phase()
         self.logger.info("*"*40)
-        self.logger.info(f'**{"SUCCESSES":>16s} |{"FAILURES":>17s} **')
-        self.logger.info(f'**{self.successes:>16d} |{self.failures:>17d} **')
+        self.logger.info(f'**{"SUCCESSES":>16s} *{"FAILURES":>17s} **')
+        self.logger.info(f'**{self.successes:>16d} *{self.failures:>17d} **')
         self.logger.info("*"*40)
