@@ -92,6 +92,11 @@ class cl_sdt_driver(uvm_driver):
         while True:
             await self.drive_reset()
 
+            # This is a workaround to wait for the machine to be ready
+            # This is only needed for the dynamic test
+            #for _ in range(50):
+            #    await RisingEdge(self.cfg.vif.clk)
+
             while self.cfg.vif.rst.value.binstr != '0':
                 await RisingEdge(self.cfg.vif.clk)
 
