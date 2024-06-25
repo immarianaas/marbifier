@@ -3,6 +3,7 @@ from pyuvm import *
 
 from cl_marb_tb_base_test import cl_marb_tb_base_test
 from cl_marb_tb_base_seq import cl_marb_tb_base_seq
+from vseqs.cl_reg_dynamic_seq import cl_reg_dynamic_seq
 from vseqs.cl_marb_random_seq import cl_marb_random_seq
 from uvc.sdt.src import *
 import globalvars
