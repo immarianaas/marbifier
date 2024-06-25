@@ -7,6 +7,12 @@ import cocotb
 from cocotb.triggers import NextTimeStep, Timer, ClockCycles, RisingEdge, FallingEdge
 import globalvars
 
+############################
+# Worked on it:            #
+# - Mariana                #
+# - Tobias                 #
+############################
+
 
 # Reference model for the marb design
 class marb_ref_model(uvm_component):

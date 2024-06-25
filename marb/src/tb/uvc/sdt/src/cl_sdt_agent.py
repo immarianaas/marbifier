@@ -15,6 +15,12 @@ from .cl_sdt_seq_item import cl_sdt_seq_item
 
 from .cl_sdt_driver import cl_sdt_driver
 
+############################
+# Worked on it:            #
+# - Mariana                #
+# - Tobias                 #
+############################
+
 
 class cl_sdt_agent(uvm_agent):
     """ UVM agent for SDT """

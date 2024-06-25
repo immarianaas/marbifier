@@ -1,6 +1,11 @@
 from .cl_reg_base_seq import cl_reg_base_seq
 from ..uvm_reg_model import *
 
+############################
+# Worked on it:            #
+# - Mariana                #
+# - Tobias                 #
+############################
 
 class cl_reg_setup_seq(cl_reg_base_seq):
     """Setup sequence for registers"""

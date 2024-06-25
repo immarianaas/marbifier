@@ -2,6 +2,11 @@
 import cocotb
 from cocotb.triggers import ReadOnly, RisingEdge
 
+############################
+# Worked on it:            #
+# - Mariana                #
+# - Tobias                 #
+############################
 
 class cl_sdt_interface_assert_check():
     def __init__(self,

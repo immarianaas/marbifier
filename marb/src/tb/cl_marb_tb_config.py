@@ -3,6 +3,12 @@ from pyuvm import *
 from uvc.sdt.src.cl_sdt_config import *
 from uvc.apb.src.cl_apb_config import *
 
+############################
+# Worked on it:            #
+# - Mariana                #
+# - Tobias                 #
+############################
+
 
 class cl_marb_tb_config(uvm_object):
     def __init__(self, name="cl_marb_tb_config"):

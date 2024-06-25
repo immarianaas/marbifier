@@ -57,7 +57,12 @@ COMPILE_ARGS += -P$(TOPLEVEL).DATA_WIDTH=$(DATA_WIDTH)
 # run all the tests (files must end with "test.py")
 TB_TESTS_FILENAMES = $(shell find $(TB_TESTS_DIR) -type f \( -iname "*test.py" \) -exec basename {} .py \; | paste -s -d ',')
 # MODULE := $(TB_TESTS_FILENAMES)
-MODULE := tests.cl_marb_static_test
+# MODULE := tests.cl_marb_static_test
+# MODULE := tests.cl_marb_dynamic_test
+# MODULE := tests.cl_marb_burst_test
+MODULE := tests.cl_marb_write_read_test
+
+
 
 # include cocotb's make rules to take care of the simulator setup
 include $(shell cocotb-config --makefiles)/Makefile.sim

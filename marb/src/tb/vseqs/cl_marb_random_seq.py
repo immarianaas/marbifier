@@ -5,6 +5,13 @@ import cocotb
 from cocotb.triggers import Combine
 
 
+############################
+# Worked on it:            #
+# - Mariana                #
+# - Tobias                 #
+############################
+
+
 class cl_marb_random_seq(cl_marb_tb_base_seq):
     """Setup and start Memory Arbiter with random sequence"""
 

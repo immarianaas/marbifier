@@ -1,6 +1,12 @@
 
 from pyuvm import *
 
+############################
+# Worked on it:            #
+# - Mariana                #
+# - Tobias                 #
+############################
+
 
 class cl_marb_tb_virtual_sequencer(uvm_sequencer):
 

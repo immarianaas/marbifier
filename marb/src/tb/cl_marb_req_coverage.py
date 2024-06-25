@@ -4,6 +4,11 @@ from pyuvm import uvm_subscriber
 import vsc
 
 
+############################
+# Worked on it:            #
+# - Mariana                #
+############################
+
 @vsc.covergroup
 class covergroup_parallel_requests(object):
     def __init__(self, name) -> None:

@@ -4,6 +4,11 @@ from uvc.sdt.src import *
 from cl_marb_tb_base_seq import cl_marb_tb_base_seq
 from reg_model.seq_lib.cl_reg_setup_dynamic_seq import cl_reg_setup_dynamic_seq
 
+############################
+# Worked on it:            #
+# - Tobias                 #
+############################
+
 @vsc.randobj
 class cl_reg_dynamic_seq(cl_marb_tb_base_seq, object):
     """Setup and start Memory Arbiter with static configuration"""

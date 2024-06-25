@@ -17,6 +17,10 @@ from uvc.sdt.src import *
 
 from uvc.sdt.src.cl_std_if_assertions import cl_sdt_interface_assert_check
 
+############################
+# Worked on it:            #
+# - Mariana                #
+############################
 
 class cl_sdt_b2b_base_test(uvm_test):
     def __init__(self, name="cl_sdt_b2b_base_test", parent=None):

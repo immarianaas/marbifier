@@ -15,6 +15,12 @@ from cl_marb_ref_model import marb_ref_model
 from cl_marb_coverage import cl_marb_coverage
 from cl_marb_req_coverage import cl_marb_req_coverage
 
+############################
+# Worked on it:            #
+# - Mariana                #
+# - Tobias                 #
+############################
+
 
 class cl_marb_tb_env(uvm_env):
     def __init__(self, name, parent):
@@ -37,7 +43,7 @@ class cl_marb_tb_env(uvm_env):
 
         self.ref_model_handler = None
         self.scoreboard = None
-        
+
         # Coverage
         self.marb_cvg = None
         self.marb_req_cvg = None
@@ -53,10 +59,6 @@ class cl_marb_tb_env(uvm_env):
         ConfigDB().set(self, "virtual_sequencer", "cfg", self.cfg)
         self.virtual_sequencer = cl_marb_tb_virtual_sequencer.create(
             "virtual_sequencer", self)
-
-        # Instantiate the SDT UVC and pass handler to cfg
-        # ConfigDB().set(self, "", "cfg", self.cfg.sdt_cfg_prod)
-        # ConfigDB().set(self, "", "cfg", self.cfg.sdt_cfg_cons)
 
         self.sdt_agent_c0 = cl_sdt_agent.create("sdt_agent_c0", self)
         self.sdt_agent_c0.cdb_set("cfg", self.cfg.sdt_cfg_c0, "")
@@ -100,7 +102,6 @@ class cl_marb_tb_env(uvm_env):
             f"{self.get_name()}_coverage", self)
         self.marb_cvg.cdb_set("cfg", self.cfg, "")
 
-
         self.marb_req_cvg = cl_marb_req_coverage.create(
             f"{self.get_name()}_req_coverage", self)
         self.marb_req_cvg.cdb_set("cfg", self.cfg, "")
@@ -135,9 +136,12 @@ class cl_marb_tb_env(uvm_env):
         self.sdt_agent_m.monitor.ap.connect(self.marb_cvg.analysis_export)
 
         # request coverage
-        self.sdt_agent_c0.monitor.request_ap.connect(self.marb_req_cvg.analysis_export)
-        self.sdt_agent_c1.monitor.request_ap.connect(self.marb_req_cvg.analysis_export)
-        self.sdt_agent_c2.monitor.request_ap.connect(self.marb_req_cvg.analysis_export)
+        self.sdt_agent_c0.monitor.request_ap.connect(
+            self.marb_req_cvg.analysis_export)
+        self.sdt_agent_c1.monitor.request_ap.connect(
+            self.marb_req_cvg.analysis_export)
+        self.sdt_agent_c2.monitor.request_ap.connect(
+            self.marb_req_cvg.analysis_export)
 
         # Connect reg_model and APB sequencer
         self.reg_model.bus_map.set_sequencer(

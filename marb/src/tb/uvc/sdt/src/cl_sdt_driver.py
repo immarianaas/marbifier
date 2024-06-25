@@ -6,6 +6,11 @@ from .sdt_common import DriverType, AccessType
 from pyuvm import UVMSequenceError, UVMFatalError
 from cocotb.types import LogicArray
 
+############################
+# Worked on it:            #
+# - Mariana                #
+# - Tobias                 #
+############################
 
 class cl_sdt_driver(uvm_driver):
     def __init__(self, name, parent):
@@ -164,16 +169,6 @@ class cl_sdt_driver(uvm_driver):
 
         while self.vif.ack.value != 1:
             await RisingEdge(self.cfg.vif.clk)
-
-        # # Capture slave response
-        # if self.req.access == AccessType.RD:
-        #     self.req.data = self.cfg.vif.rdata.value.integer
-        #     self.rsp.data = self.cfg.vif.rdata.value.integer
-
-        # # Return to idle
-        # await RisingEdge(self.cfg.vif.clk)
-        # self.cfg.vif.enable.value = 0
-        # self.cfg.vif.sel.value = 0
 
         self.vif.rd.value = 0
         self.vif.wr.value = 0

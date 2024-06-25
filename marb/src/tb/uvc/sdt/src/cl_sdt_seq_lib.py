@@ -10,6 +10,12 @@ from cocotb.triggers import Timer
 from .cl_sdt_seq_item import *
 from .sdt_common import *
 
+############################
+# Worked on it:            #
+# - Mariana                #
+# - Tobias                 #
+############################
+
 
 @vsc.randobj
 class cl_sdt_base_seq(uvm_sequence, object):
@@ -46,17 +52,12 @@ class cl_sdt_single_seq(cl_sdt_base_seq):
         if self.sequencer.cfg.driver == DriverType.PRODUCER:
             await super().body()
 
-        print(f"\n1.{self.s_item}\n")
-
         await self.start_item(self.s_item)
-
-        print(f"\n2. {self.s_item}\n")
 
         self.sequencer.logger.debug(self.s_item)
 
         # Send transaction to driver
         await self.finish_item(self.s_item)
-        print(f"\n3. {self.s_item}\n")
 
 
 class cl_sdt_single_zd_seq(cl_sdt_single_seq):
@@ -134,7 +135,6 @@ class cl_sdt_count_seq(cl_sdt_base_seq):
         self.count in vsc.rangelist(vsc.rng(0, 100))
 
     async def body(self):
-        print("COUNT", self.count)
         for _ in range(self.count):
             if self.sequencer.cfg.driver == DriverType.PRODUCER:
                 await super().body()
@@ -150,9 +150,6 @@ class cl_sdt_count_seq(cl_sdt_base_seq):
 
             # Send transaction to driver
             await self.finish_item(self.s_item)
-
-            # TODO: should be commented?
-            # await self.get_response(self.s_item)
 
 
 @vsc.randobj
@@ -170,7 +167,6 @@ class cl_sdt_burst_seq(cl_sdt_base_seq):
         self.max_burst_length in vsc.rangelist(vsc.rng(0, 256))
 
     async def body(self):
-        print("BURST COUNT", self.count)
         # Create transaction
 
         for _ in range(self.count):
@@ -194,9 +190,6 @@ class cl_sdt_burst_seq(cl_sdt_base_seq):
                 # Send transaction to driver
                 await self.finish_item(self.s_item)
 
-                # TODO: should be commented?
-                # await self.get_response(self.s_item)
-
 
 @vsc.randobj
 class cl_sdt_write_read_seq(cl_sdt_base_seq):
@@ -211,7 +204,6 @@ class cl_sdt_write_read_seq(cl_sdt_base_seq):
         self.count in vsc.rangelist(vsc.rng(0, 100))
 
     async def body(self):
-        print("BURST COUNT", self.count)
         # Create transaction
         write_addresses = set()
 
@@ -232,7 +224,6 @@ class cl_sdt_write_read_seq(cl_sdt_base_seq):
             # if is a read and on the list, remove value from list
             else:
                 write_addresses.remove(self.s_item.addr)
-
 
             if self.sequencer.cfg.driver == DriverType.PRODUCER:
                 await super().body()

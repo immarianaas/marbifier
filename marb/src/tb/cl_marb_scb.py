@@ -2,6 +2,12 @@ from pyuvm import uvm_scoreboard, uvm_analysis_port, uvm_tlm_analysis_fifo
 import cocotb
 from cocotb.queue import Queue
 
+############################
+# Worked on it:            #
+# - Mariana                #
+# - Tobias                 #
+############################
+
 
 class cl_marb_scoreboard(uvm_scoreboard):
     """ Scoreboard for MARB. """

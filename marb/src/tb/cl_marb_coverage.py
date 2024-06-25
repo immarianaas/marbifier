@@ -1,7 +1,10 @@
 from pyuvm import uvm_subscriber
 import vsc
 
-# Covergroup class
+############################
+# Worked on it:            #
+# - Mariana                #
+############################
 
 
 @vsc.covergroup
@@ -119,7 +122,6 @@ class cl_marb_coverage(uvm_subscriber):
             addr_width=self.cfg.ADDR_WIDTH
         )
 
-
     def write(self, item):
         print(item)
         rd = 0 if item.access == 1 else 1
@@ -180,4 +182,3 @@ class cl_marb_coverage(uvm_subscriber):
         else:  # if it was a WRITE
             self.wr_burst.sample(
                 count, initial_addr)  # length, addr
-
