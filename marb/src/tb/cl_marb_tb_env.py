@@ -13,6 +13,7 @@ from uvc.apb.src.cl_apb_monitor import cl_apb_monitor
 from cl_marb_scb import cl_marb_scoreboard
 from cl_marb_ref_model import marb_ref_model
 from cl_marb_coverage import cl_marb_coverage
+from cl_marb_req_coverage import cl_marb_req_coverage
 
 
 class cl_marb_tb_env(uvm_env):
@@ -36,7 +37,10 @@ class cl_marb_tb_env(uvm_env):
 
         self.ref_model_handler = None
         self.scoreboard = None
+        
+        # Coverage
         self.marb_cvg = None
+        self.marb_req_cvg = None
 
     def build_phase(self):
         self.logger.info("Start build_phase() -> MARB env")
@@ -96,6 +100,11 @@ class cl_marb_tb_env(uvm_env):
             f"{self.get_name()}_coverage", self)
         self.marb_cvg.cdb_set("cfg", self.cfg, "")
 
+
+        self.marb_req_cvg = cl_marb_req_coverage.create(
+            f"{self.get_name()}_req_coverage", self)
+        self.marb_req_cvg.cdb_set("cfg", self.cfg, "")
+
         self.logger.info("End build_phase() -> MARB env")
 
     def connect_phase(self):
@@ -124,6 +133,11 @@ class cl_marb_tb_env(uvm_env):
 
         # connect memory monitor to coverage
         self.sdt_agent_m.monitor.ap.connect(self.marb_cvg.analysis_export)
+
+        # request coverage
+        self.sdt_agent_c0.monitor.request_ap.connect(self.marb_req_cvg.analysis_export)
+        self.sdt_agent_c1.monitor.request_ap.connect(self.marb_req_cvg.analysis_export)
+        self.sdt_agent_c2.monitor.request_ap.connect(self.marb_req_cvg.analysis_export)
 
         # Connect reg_model and APB sequencer
         self.reg_model.bus_map.set_sequencer(
