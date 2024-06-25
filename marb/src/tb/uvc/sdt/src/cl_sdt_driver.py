@@ -37,7 +37,6 @@ class cl_sdt_driver(uvm_driver):
         await super().run_phase()
 
         # Starts coroutines in parallel
-        cocotb.start_soon(self.clock_event())
         cocotb.start_soon(self.drive_transaction())
         cocotb.start_soon(self.handle_reset())
 
@@ -81,12 +80,12 @@ class cl_sdt_driver(uvm_driver):
         if self.cfg.driver is DriverType.PRODUCER:
             self.vif.wr.value = 0
             self.vif.rd.value = 0
-            self.vif.wr_data.value = LogicArray("X" * 8)
-            self.vif.addr.value = LogicArray("X" * 8)  # TODO: change
+            self.vif.wr_data.value = LogicArray("X" * self.cfg.DATA_WIDTH)
+            self.vif.addr.value = LogicArray("X" * self.cfg.DATA_WIDTH)
 
         if self.cfg.driver is DriverType.CONSUMER:
             self.vif.ack.value = 0
-            self.vif.rd_data.value = LogicArray("X" * 8)
+            self.vif.rd_data.value = LogicArray("X" * self.cfg.DATA_WIDTH)
 
     async def drive_transaction(self):
         while True:

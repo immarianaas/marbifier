@@ -2,6 +2,7 @@
 import cocotb
 from cocotb.triggers import ReadOnly, RisingEdge
 
+
 class cl_sdt_interface_assert_check():
     def __init__(self,
                  clk_signal=None,
@@ -36,8 +37,6 @@ class cl_sdt_interface_assert_check():
         cocotb.start_soon(self.cannot_read_write())
         cocotb.start_soon(self.addr_not_x())
         cocotb.start_soon(self.wr_data_not_x())
-    
-
 
     async def cannot_read_write(self):
         """Cannot read and write at the same time."""
