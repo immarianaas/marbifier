@@ -3,8 +3,7 @@ from pyuvm import *
 
 from cl_marb_tb_base_test import cl_marb_tb_base_test
 from cl_marb_tb_base_seq import cl_marb_tb_base_seq
-from vseqs.cl_reg_dynamic_seq import cl_reg_dynamic_seq
-from vseqs.cl_marb_dynamic_seq import cl_marb_dynamic_seq
+from vseqs.cl_marb_random_seq import cl_marb_random_seq
 from uvc.sdt.src import *
 import globalvars
 
@@ -19,7 +18,7 @@ class cl_marb_dynamic_test(cl_marb_tb_base_test):
     def start_of_simulation_phase(self):
         globalvars.STATIC = False
         super().start_of_simulation_phase()
-        uvm_factory().set_type_override_by_type(cl_marb_tb_base_seq, cl_marb_dynamic_seq)
+        uvm_factory().set_type_override_by_type(cl_marb_tb_base_seq, cl_marb_random_seq)
 
     async def run_phase(self):
         self.raise_objection()
@@ -32,7 +31,7 @@ class cl_marb_dynamic_test(cl_marb_tb_base_test):
         # cocotb.start_soon(conf_seq.start(self.marb_tb_env.virtual_sequencer))
         await conf_seq.start(self.marb_tb_env.virtual_sequencer)
 
-        self.top_seq = cl_marb_dynamic_seq.create("top_seq")
+        self.top_seq = cl_marb_random_seq.create("top_seq")
         self.top_seq.randomize()
         print("~ starting ~")
         await self.top_seq.start(self.marb_tb_env.virtual_sequencer)
